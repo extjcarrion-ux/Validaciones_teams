@@ -1,14 +1,5 @@
-import requests
-import json
-import time
-# 1. La URL de tu Power Automate
-url = "https://defaultc4a8886bf140478bac47249555c30a.fd.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/4e006e90e0fd42189f02eb0c11f198bf/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=zUVsJTLAY1pDGDUwB0wBQcgN1bfADSjjqyeNbgp4ZiM"
 
-### 2. El Payload (Los datos que vas a enviar)
-# He usado los datos de tu ejemplo anterior que coinciden con el esquema
-destinatario_valor = "ext_jcarrion@Falabella.cl"
-mensaje_valor = """
-{
+{"data":{
     "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
     "type": "AdaptiveCard",
     "version": "1.4",
@@ -87,22 +78,4 @@ mensaje_valor = """
         }
     ]
 }
-"""
-
-### 3. Cabeceras (Power Automate espera JSON)
-headers = {
-    "Content-Type": "application/json"
 }
-for i in range(0,1):
-    payload = {
-	  "destinatario": destinatario_valor,
- 	  "mensaje": mensaje_valor
-        }
-
-    response = requests.post(url, json=payload)
-
-    print(f"Envío {i} → Status {response.status_code}")
-    print(response.text)
-
-    time.sleep(0.2)
-

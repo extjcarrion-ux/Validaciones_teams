@@ -1,0 +1,89 @@
+# from app.utills.utills import objetener_arreglo
+
+# data = {
+#     "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+#     "type": "AdaptiveCard",
+#     "version": "1.4",
+#     "body": [
+#         {
+#             "type": "TextBlock",
+#             "text": "Validación de equipo - aaarancibiad@sodimac.cl",
+#             "weight": "Bolder",
+#             "size": "Medium"
+#         },
+#         {
+#             "type": "TextBlock",
+#             "text": "Selecciona qué colaboradores pertenecen a tu equipo:",
+#             "wrap": "true"
+#         },
+#         {
+#             "type": "Input.ChoiceSet",
+#             "id": "equipo_validado",
+#             "isMultiSelect": "true",
+#             "style": "expanded",
+#             "choices": [
+#                 {
+#                     "title": "Dino Francisco Girardi Donoso (dgirardi@sodimac.cl)",
+#                     "value": "dgirardi@sodimac.cl"
+#                 },
+#                 {
+#                     "title": "Monica Loreto Retamal Olivares (mlretamal@sodimac.cl)",
+#                     "value": "mlretamal@sodimac.cl"
+#                 },
+#                 {
+#                     "title": "Monica Javiera Vega Sobarzo (mvegas@sodimac.cl)",
+#                     "value": "mvegas@sodimac.cl"
+#                 },
+#                 {
+#                     "title": "Pietro Angelo Giacchero Mebus (pgiacchero@sodimac.cl)",
+#                     "value": "pgiacchero@sodimac.cl"
+#                 },
+#                 {
+#                     "title": "Luis Andres Zuñiga Adasme (luazunigaad@sodimac.cl)",
+#                     "value": "luazunigaad@sodimac.cl"
+#                 },
+#                 {
+#                     "title": "Francisco Ignacio Cubillos Baldessari (fcubillos@sodimac.cl)",
+#                     "value": "fcubillos@sodimac.cl"
+#                 },
+#                 {
+#                     "title": "Pablo Eduardo  Yevenes Vitagliano (peyevenes@sodimac.cl)",
+#                     "value": "peyevenes@sodimac.cl"
+#                 },
+#                 {
+#                     "title": "Pablo Andres Assael Repetto (paassael@sodimac.cl)",
+#                     "value": "paassael@sodimac.cl"
+#                 },
+#                 {
+#                     "title": "Aníbal Esteban Segura Flores (asegura@sodimac.cl)",
+#                     "value": "asegura@sodimac.cl"
+#                 },
+#                 {
+#                     "title": "Valentina Cueto Gaozza (vcueto@sodimac.cl)",
+#                     "value": "vcueto@sodimac.cl"
+#                 }
+#             ]
+#         },
+#         {
+#             "type": "Input.Toggle",
+#             "title": "Falta alguien en la lista",
+#             "id": "falta_gente",
+#             "valueOn": "1",
+#             "valueOff": "0"
+#         }
+#     ],
+#     "actions": [
+#         {
+#             "type": "Action.Submit",
+#             "title": "Enviar"
+#         }
+#     ]
+# }
+
+# choices = "choices"
+# data = objetener_arreglo(data,choices)
+# print(data)
+# # print(data)
+
+# # for key,val in data.items():
+# #     print(key)

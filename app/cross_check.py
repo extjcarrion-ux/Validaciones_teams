@@ -1,16 +1,10 @@
-#!/usr/bin/env python
-# Librerias
-import pandas as pd
-import os
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-from tkinter import filedialog, simpledialog
-from warnings import filterwarnings
-import numpy as np
-from datetime import datetime, timezone
 import pytz
+import os
+import pandas as pd
+from datetime import datetime
+from tkinter import filedialog
+from warnings import filterwarnings
 from google.cloud import bigquery
-from google.cloud.exceptions import NotFound
 from tkinter import Tk
 import tkinter as tk
 # Define la zona horaria GMT-4
