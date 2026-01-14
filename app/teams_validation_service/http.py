@@ -1,11 +1,11 @@
-import os
 import time
 import warnings
 import requests
 import pandas as pd
-
 from pathlib import Path
+
 from config.config import settings
+from app.utills.utills import objetener_arreglo
 
 ########### config ##############
 pd.set_option('display.max_rows', 5)
@@ -38,10 +38,11 @@ class EnvSolicitud:
 
     ####################################################
     def creacionjson(self, destinatario: str, mensaje: str):
+        colaboradores = objetener_arreglo(mensaje)
         stat = True
         result = {
             "destinatario": destinatario,
-            "lista_colaboradores": mensaje
+            "lisa_colaboradores": colaboradores
         }
 
         try:
@@ -51,8 +52,6 @@ class EnvSolicitud:
             }
 
             response = requests.post(url, json=payload)
-            print(f"Envío → Status {response.status_code}")
-
             result["status_code"] = str(response.status_code)
 
             time.sleep(0.2)
@@ -77,4 +76,5 @@ class EnvSolicitud:
                                  })
         
         df_result = pd.DataFrame(lista_result)
-        print(df_result)
+        df_result.to_csv("resultado.csv", sep=";",header=True)
+

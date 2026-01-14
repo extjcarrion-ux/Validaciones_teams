@@ -164,7 +164,7 @@ class ListaUsuarios:
           name_file = self.path_file
 
       data.to_excel(f"{name_file}.xlsx", index=False)
-      data.to_csv(f"{name_file}.csv", index=False,sep="," ,encoding="utf-8")
+      data.to_csv(f"{name_file}.csv", index=False,sep=";" ,encoding="utf-8")
 
       ### ----------------------------------- ###
       print("Archivo Guardado en :",name_file)
