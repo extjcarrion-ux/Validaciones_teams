@@ -1,23 +1,19 @@
 import os
-from app.teams_validation_service.fuente_de_la_verdad import ListaUsuarios
-from app.teams_validation_service.http import EnvSolicitud
+import pandas as pd
+from app.flow.flow import *
 from config.config import settings
 
+##################################
 os.system("cls")
+##################################
 
-### ------------------------------ ###
-file_dest = "destinatarios"
+file_dest  = "destinatarios_test"
+step_descargar_destinatarios(file_dest)
 
-### ------------------------------ ###
-# lista = ListaUsuarios(file_dest)
-# archivo = lista.exec_query()
-### ------------------------------ ###
+##################################
+# sucess,df_destinatarios = step_enviar_formularios(file_dest)
 
-
-dest      = "ext_jcarrion@Falabella.cl"
-mensaje   = "aca"
-json_dest = EnvSolicitud(file_dest)
-
-df_destinatarios = json_dest.listaDestinatarios()
-res       = json_dest.enviojson(df_destinatarios[2])
+# ##################################
+# if sucess:
+#     step_cargar_bigquery(df_destinatarios)
 

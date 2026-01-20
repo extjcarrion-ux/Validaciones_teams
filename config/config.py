@@ -1,13 +1,26 @@
 from typing import Optional
-from pydantic import Field
+from pydantic import Field,SecretStr
 from pydantic_settings import BaseSettings,SettingsConfigDict
 from pathlib import Path
 
 class Settings(BaseSettings):
+    ###################################################
     project_prod:Optional[str]    = Field(default=None)
     project_qa:Optional[str]      = Field(default=None)
     url_p_automate:Optional[str]  = Field(default=None)
+
+    ###################################################
+    bigquery_sandbox_qa:Optional[str] = Field(default=None)
+    table_sandbox_qa:Optional[str] = Field(default=None)
+
+    ###################################################
     path_output:Path              = Path("data/")
+    path_result:Path              = Path("data/")
+
+    ###################################################
+    # url_sharepoint:str=str("")
+    # sp_user:Optional[str]=Field(default=None)
+    # sp_pass:str=str("")
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -16,3 +29,5 @@ class Settings(BaseSettings):
     )
 
 settings = Settings()
+
+

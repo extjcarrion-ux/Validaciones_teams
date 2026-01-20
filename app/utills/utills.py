@@ -1,7 +1,7 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
-def objetener_arreglo(data,value:str = "choices"):
+def obtener_arreglo(data,value:str = "choices"):
     choices,lista_resul = [],[]
     data = json.loads(data)
 
@@ -22,17 +22,5 @@ def objetener_arreglo(data,value:str = "choices"):
     return lista_resul
 
 
-def objetener_fecha():
-    date_     = datetime.now().strftime("%d-%m-%Y")
-    datetime_ = datetime.now().strftime("%d-%m-%Y")
-    try:
-        print(date_)
-        print(datetime_)
-
-    except Exception as e:
-        print(str(e))
-    
-    return date_
-
-objetener_fecha()
-
+def obtener_fecha_hora() -> datetime:
+    return datetime.now(timezone.utc)

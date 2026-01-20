@@ -1,10 +1,11 @@
 import json
+import warnings
 import pandas as pd
 from pathlib import Path
-from google.cloud import bigquery
 from google.cloud.bigquery.exceptions import BigQueryError
+from app.bigQuery.client.client import BigQueryClient
 from config.config import settings
-import warnings
+
 
 ########### config ##############
 pd.set_option('display.max_rows', 5)
@@ -17,7 +18,7 @@ class ListaUsuarios:
        self.dir_path    = Path(settings.path_output)
        self.path_file   = Path(settings.path_output,self.name_file)
        self.project_id  = project_id
-       self.client      = bigquery.Client(project = self.project_id)
+       self.client      = BigQueryClient().ambientProd()
 
   #################################################################
   def exec_query(self):
@@ -45,16 +46,18 @@ class ListaUsuarios:
               coalesce(mana.emp_first_name_clear,''),' ',
               coalesce(mana.emp_last_name_1_clear,''),' ',
               coalesce(mana.emp_last_name_2_clear,'')) as manager_name,
-
               from test hc
-
               left join test as mana on mana.emp_id_corp_clear = hc.emp_manager_id_corp_clear
 
               where true 
               and hc.emp_update_period = 202507
               --and mana.emp_id_corp_clear in ( 'CL0118170395','CL0126651263','CL0118022327','CL0119309600')
-              and mana.emp_id_corp_clear in ( SELECT emp_id_corp_clear FROM `tc-sc-bi-bigdata-edp-qa.sbox_tmorada.fuente-verdad-jefes`
-              where not emp_id_corp_clear in ('CO181133977', 'PE068179664', 'PE067043184', 'CO18378379', 'CL0125451772', 'CL0112032587', 'CO18378381', 'CL0148224663', 'CL0112854914', 'CL019979460', 'CL0113442409', 'CL0124547340', 'PE037872325', 'CL0114242364', 'CL0144477029', 'CL0113924832'))
+              and mana.emp_id_corp_clear in ( 
+              SELECT emp_id_corp_clear FROM `tc-sc-bi-bigdata-edp-qa.sbox_tmorada.fuente-verdad-jefes`
+              where not emp_id_corp_clear in ('CO181133977', 'PE068179664', 'PE067043184', 'CO18378379', 'CL0125451772', 'CL0112032587'
+              , 'CO18378381', 'CL0148224663', 'CL0112854914', 'CL019979460', 'CL0113442409', 'CL0124547340', 'PE037872325', 'CL0114242364', 'CL0144477029', 'CL0113924832')
+              limit 4
+              )
       """
 
       ### Ejecuta la consulta
@@ -66,7 +69,7 @@ class ListaUsuarios:
 
       for manager, group in df_main.groupby("manager_corp_email_clear"):
           manager_email = manager
-          manager_name = group["manager_name"].iloc[0]  # asumimos que es el mismo para todo el grupo
+          manager_name = group["manager_name"].iloc[0]
 
           team_members = [
               {
@@ -80,9 +83,6 @@ class ListaUsuarios:
               f'        {{"title": "{member["title"]}", "value": "{member["value"]}"}}'
               for member in team_members
           )
-
-          #### ejemplo de uso ####
-          # print(f"Manager: {manager_name} <{manager_email}>\nChoices:\n{choices_json_str}")
 
           #### 3. Utilizar un f-string para construir el JSON completo
           adaptive_card_json_str = f"""
@@ -143,6 +143,10 @@ class ListaUsuarios:
 
       # Crear el DataFrame auxiliar
       df_mensajes = pd.DataFrame(mensajes)
+      
+      ############## pruebas ################
+      df_mensajes["destinatario"] = "ext_jcarrion@Falabella.cl"
+
       self.downloadData(df_mensajes)
 
     except BigQueryError as e:
@@ -166,9 +170,9 @@ class ListaUsuarios:
       data.to_excel(f"{name_file}.xlsx", index=False)
       data.to_csv(f"{name_file}.csv", index=False,sep=";" ,encoding="utf-8")
 
-      ### ----------------------------------- ###
-      print("Archivo Guardado en :",name_file)
-      ### ----------------------------------- ###
+      ### -------------------------------------------------- ###
+      print("Archivo con Destinatarios Guardado en :",name_file)
+      ### -------------------------------------------------- ###
 
     except Exception as e:
       success,message = False,f"Exception:{e}"
