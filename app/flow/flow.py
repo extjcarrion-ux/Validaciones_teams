@@ -1,11 +1,13 @@
-from app.teams_validation_service.fuente_de_la_verdad import ListaUsuarios
+from config.config import settings
+from app.processData.read_data import ProcessFile
+from app.bigQuery.client.client import BigQueryClient
 from app.teams_validation_service.http import EnvSolicitud
 from app.bigQuery.bigquery_repository import BigQueryTableRepository
-from app.bigQuery.client.client import BigQueryClient
-from config.config import settings
+from app.bigQuery.merge_config.merge_config import MERGE_CONFIG
+from app.teams_validation_service.fuente_de_la_verdad import ListaUsuarios
 
 
-# --------------------------------------------------
+# -------------------------------------------------- #
 def step_descargar_destinatarios(file_dest: str):
     lista = ListaUsuarios(file_dest)
     success, msn, archivo = lista.exec_query()
@@ -13,7 +15,7 @@ def step_descargar_destinatarios(file_dest: str):
         raise RuntimeError(msn)
     return archivo
 
-# --------------------------------------------------
+# -------------------------------------------------- #
 def step_enviar_formularios(archivo: str):
     json_dest          = EnvSolicitud(archivo)
     df_destinatarios   = json_dest.listaDestinatarios()
@@ -23,20 +25,43 @@ def step_enviar_formularios(archivo: str):
 
     return success,result_df
 
-# --------------------------------------------------
-def step_cargar_bigquery(df):
-    client = BigQueryClient().ambientQA()
-    tabla = str(settings.table_sandbox_qa)
-    project_id = str(settings.project_qa)
+# -------------------------------------------------- #
+def step_cargar_bigquery(df, tabla):
+    allowed = settings.allowed_bq_tables
 
-    repo = BigQueryTableRepository(tabla, project_id, client)
+    if tabla not in allowed.values():
+        return ValueError(
+            f"la tabla '{tabla}' no se encuentra dentro de las tablas permitidas"
+        )
+    repo = BigQueryTableRepository(table = str(tabla)
+                                   , project_id = str(settings.project_qa)
+                                   , client = BigQueryClient().ambientQA())
     repo.load_staging(df)
-    repo.merge_into(tabla, "request_id")
 
-# --------------------------------------------------
-def run_full_flow():
+    repo.merge_into(
+        table_final=tabla,
+        config=MERGE_CONFIG[tabla]
+    )
+
+# -------------------------------------------------- #
+def step_cargar_data_automate(path,archivo):
+    tabla_response = settings.allowed_bq_tables["data_automate"]
+    data = ProcessFile(path=path
+                    ,archivo=archivo)
+
+    parametros = MERGE_CONFIG[tabla_response]
+    sucess,state,data = data.read_csv(parametros)
+    if sucess:
+        step_cargar_bigquery(
+            data,
+            tabla_response
+        )
+    else:
+        print("Error 'step_cargar_data_automate' ",state)
+
+# -------------------------------------------------- #
+def run_full_flow(tabla):
     archivo = step_descargar_destinatarios("destinatarios_test")
     df = step_enviar_formularios(str(archivo))
-    step_cargar_bigquery(df)
-
+    step_cargar_bigquery(df,tabla)
 

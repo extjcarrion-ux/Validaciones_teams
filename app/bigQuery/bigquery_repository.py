@@ -4,7 +4,7 @@ from google.cloud.bigquery.exceptions import BigQueryError
 import pandas as pd
 
 class BigQueryTableRepository:
-    def __init__(self, table: str, project_id: str, client):
+    def __init__(self, table, project_id, client):
         self.table      = table
         self.project_id = project_id
         self.client     = client
@@ -12,7 +12,7 @@ class BigQueryTableRepository:
         self._loadSettings()
 
     #########################################################
-    def _loadSettings(self):        
+    def _loadSettings(self):
         from config.config import settings
         self.enviroment = settings.project_qa
         self.sandbox    = settings.bigquery_sandbox_qa
@@ -29,12 +29,22 @@ class BigQueryTableRepository:
     #########################################################
     def load_staging(self,data):
         df = pd.DataFrame(data)
+        project = f"{self.project_id}.{self.sandbox}"
+        ### ---------------------------- ###
+        print(f"""Subiendo datos de la tabla {self.stg_table} !\n
+              {df.head(5) } \n""")
+        ### ---------------------------- ###
         try:
             if df.empty:
                 raise ValueError("Dataframe vacio")
 
+            query = f"""
+                DROP TABLE IF EXISTS `{project}.{self.stg_table}`;
+                """
+      ################# Ejecuta la consulta ##################
+            query_job = self.client.query(query)
+
             table_id = f"{self.sandbox}.{self.stg_table}"
-            print("/n",table_id)
             job_config = bigquery.LoadJobConfig(
                 schema=[
                         bigquery.SchemaField("request_id", "STRING"),
@@ -53,44 +63,45 @@ class BigQueryTableRepository:
         return response,msn
 
     #########################################################    
-    def merge_into(self,table_final:str, id:str):
+    def merge_into(self, table_final: str, config: dict):
         project = f"{self.project_id}.{self.sandbox}"
+        ### ---------------------------- ###
+        print(f"Ejecutando Merge de la tabla {self.table} !")
+        ### ---------------------------- ###
         try:
-            query = f"""
-                    MERGE `{project}.{table_final}` t
-                    USING `{project}.{self.stg_table}` s
-                    on  t.{id} = s.{id}
+            pk = "".join(config["pk"])
+            columns = config["columns"]
+            insert_cols = ",\n  ".join(columns.keys())
+            insert_vals = ",\n  ".join(columns.values())
 
-                    WHEN NOT MATCHED THEN
-                    INSERT (
-                        request_id,
-                        destinatario,
-                        lista_colaboradores,
-                        status_code,
-                        success,
-                        timestamp
-                    )
-                    VALUES (
-                        s.request_id,
-                        s.destinatario,
-                        SPLIT(s.lista_colaboradores, '|'),
-                        s.status_code,
-                        s.success,
-                        timestamp(s.timestamp)
+            query = f"""                
+                MERGE `{project}.{table_final}` t
+                USING `{project}.{self.stg_table}` s
+                ON t.{pk} = s.{pk}
+
+                WHEN NOT MATCHED THEN
+                INSERT (
+                         {insert_cols}
+                        )
+                VALUES (
+                    {insert_vals}
                     );
-
-                    drop table  `{project}.{self.stg_table}`
+                
+                DROP TABLE `{project}.{self.stg_table}`;
                 """
-
-      ################## Ejecuta la consulta ##################
+      ################# Ejecuta la consulta ##################
             query_job = self.client.query(query)
             response, msn = True,"OK"
+            # ### ---------------------------- ###
+            print(f"Merge de la tabla {self.table} Exitoso!")
+            # ### ---------------------------- ###
 
         except BigQueryError as e:
             response,msn = False,f"BigQueryError: {e}"
+            print(f"BigQueryError: {e}")
         except Exception as e:
             response,msn = False,f"Exception: {e}"
-    
+            print(f"Exception: {e}")
         return response,msn
 
 

@@ -4,7 +4,6 @@ import warnings
 import requests
 import pandas as pd
 from pathlib import Path
-
 from config.config import settings
 from app.utills.utills import obtener_arreglo,obtener_fecha_hora
 
@@ -16,8 +15,6 @@ warnings.simplefilter("ignore", UserWarning)
 ### 1. La URL de tu Power Automate ###
 url = str(settings.url_p_automate)
 
-### 2. El Payload (Los datos que vas a enviar) ###
-### He usado los datos de tu ejemplo anterior que coinciden con el esquema
 class EnvSolicitud:
     def __init__(self,file_dest):
         self.dir_path    = settings.path_output
@@ -27,12 +24,18 @@ class EnvSolicitud:
     ####################################################
     def listaDestinatarios(self):
         success,message,data = True,"OK",pd.DataFrame()
+        ### ---------------------------- ###
+        print(f"Procesando lista de destinatarios !")
+        ### ---------------------------- ###
         try:
             file_dest = Path(self.dir_path,self.file_dest+".xlsx")
 
             if Path().exists() and file_dest.suffix == ".xlsx":
                 data = pd.read_excel(file_dest,sheet_name="Sheet1")
 
+        ### ---------------------------- ###
+            print(f"{len(data)} Destinatarios OK!")
+        ### ---------------------------- ###
         except Exception as e:
                 success,message = False,f"Exception: {e}"
 
@@ -92,4 +95,3 @@ class EnvSolicitud:
             print(e)
 
         return success,df_result
-

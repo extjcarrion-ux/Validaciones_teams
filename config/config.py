@@ -12,15 +12,17 @@ class Settings(BaseSettings):
     ###################################################
     bigquery_sandbox_qa:Optional[str] = Field(default=None)
     table_sandbox_qa:Optional[str] = Field(default=None)
-
+    table_sandbox_result:Optional[str] = Field(default=None)
+    allowed_bq_tables:dict[str,str] = Field(
+        default_factory=lambda:{
+                            "data_teams"    : "teams_validation_data",
+                            "data_automate" : "response_validation_data"
+        })
     ###################################################
     path_output:Path              = Path("data/")
     path_result:Path              = Path("data/")
 
     ###################################################
-    # url_sharepoint:str=str("")
-    # sp_user:Optional[str]=Field(default=None)
-    # sp_pass:str=str("")
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -29,5 +31,5 @@ class Settings(BaseSettings):
     )
 
 settings = Settings()
-
+print(settings.allowed_bq_tables)
 
