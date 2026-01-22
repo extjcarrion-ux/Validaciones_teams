@@ -31,15 +31,19 @@ class ProcessFile:
             if not columns_cfg:
                 return False, "No se especificaron columnas", df_result
 
+            ##########################################################
             columnas = list(columns_cfg.keys())
-
             df = pd.read_csv(ruta, sep=";", header=0,encoding=get_encoding(ruta))
+            df["edp_load_datetime"] = obtener_fecha_hora()
 
             col_filtradas = [c for c in columnas if c in df.columns]
             col_no_encontradas = [c for c in columnas if c not in df.columns]
-            df_result = df[col_filtradas].copy()
-            df_result["edp_load_datetime"] = obtener_fecha_hora()
 
+            ##########################################################
+            if col_no_encontradas:
+                return False, f"Error | Columnas no encontradas en el Archivo: {col_no_encontradas}", df_result
+
+            df_result = df[col_filtradas].copy()
             ### elimina si existe vacios en la primera columna de las fila encontradas ###
             df_result = df_result.dropna(subset=[col_filtradas[0]])
             df_result = df_result.fillna("")
@@ -54,10 +58,6 @@ class ProcessFile:
                 axis=1,
                 cols=keys_cols
             )
-
-            if col_no_encontradas:
-                print("col_no_encontradas ",col_no_encontradas)
-                return True, f"OK | Columnas no encontradas: {col_no_encontradas}", df_result
 
             ### ---------------------------- ###
             print(f"Archivo {self.file} OK !")

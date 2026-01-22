@@ -1,3 +1,4 @@
+##app/teams_validation_service/http.py
 import time
 import uuid
 import warnings
@@ -17,32 +18,37 @@ url = str(settings.url_p_automate)
 
 class EnvSolicitud:
     def __init__(self,file_dest):
+        self.file_dest   = file_dest        
         self.dir_path    = settings.path_output
-        self.file_dest   = file_dest
         self.file_result = settings.path_result
 
     ####################################################
-    def listaDestinatarios(self):
-        success,message,data = True,"OK",pd.DataFrame()
+    def lista_destinatarios(self):
+        success,message= True,"OK"
         ### ---------------------------- ###
         print(f"Procesando lista de destinatarios !")
         ### ---------------------------- ###
+        file_dest = Path(self.dir_path,self.file_dest+".xlsx")
+
+        if not file_dest.exists():
+            return False,f"La ruta {file_dest} no existe",pd.DataFrame()
+
+        if file_dest.suffix != ".xlsx":
+            return False,f"El archivo no es un excel",pd.DataFrame()
+
         try:
-            file_dest = Path(self.dir_path,self.file_dest+".xlsx")
-
-            if Path().exists() and file_dest.suffix == ".xlsx":
-                data = pd.read_excel(file_dest,sheet_name="Sheet1")
-
-        ### ---------------------------- ###
+            data = pd.read_excel(file_dest,sheet_name="Sheet1")
             print(f"{len(data)} Destinatarios OK!")
+            return success,message,data
         ### ---------------------------- ###
-        except Exception as e:
-                success,message = False,f"Exception: {e}"
+        except ValueError as e:
+            return False, f"Error en el Excel: {e}", pd.DataFrame()
 
-        return success,message,data
+        except Exception as e:
+            return False, f"Error inesperado: {e}", pd.DataFrame()
 
     ####################################################
-    def creacionjson(self, destinatario: str, mensaje: str):
+    def creacion_json(self, destinatario: str, mensaje: str):
         colaboradores = obtener_arreglo(mensaje)
         requests_id = str(uuid.uuid4())
         stat = True
@@ -73,12 +79,12 @@ class EnvSolicitud:
         return stat, result
 
     ####################################################
-    def enviojson(self,data:pd.DataFrame):
+    def envio_json(self,data:pd.DataFrame):
         total,i = len(data),1
         success,lista_result,df_result = True,[],pd.DataFrame()
         try:
             for row in data.itertuples(index=False):
-                response,msn = self.creacionjson(row[0], row[1])
+                response,msn = self.creacion_json(row[0], row[1])
                 lista_result.append(
                                     {**msn,
                                     "success": response,
