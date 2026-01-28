@@ -57,16 +57,40 @@ OPTIONS (
 -- order by a.edp_load_datetime desc;
 
 --------------------------------------------------------
--- select a.* except(timestamp,lista_colaboradores)
--- ,datetime(a.timestamp, "America/Santiago") AS fecha
+--------------------------------------------------------
+-- select 
+-- datetime(a.timestamp, "America/Santiago") AS fecha
 -- ,b.responseTime
--- ,b.responder_email
 -- ,b.responder_displayName
--- ,b.equipo_validado
+-- ,a.* except(request_id,timestamp,success,status_code,lista_colaboradores)
+-- --,a.lista_colaboradores
+-- ,ARRAY_LENGTH(a.lista_colaboradores) AS lista_colaboradores
+-- --,b.equipo_validado
+-- ,ARRAY_LENGTH(b.equipo_validado) AS equipo_validado
 -- ,b.falta_gente
+-- ,(ARRAY_LENGTH(a.lista_colaboradores)
+-- -ARRAY_LENGTH(b.equipo_validado)) as Equipo_incompleto
+-- ,ROUND(
+--   SAFE_DIVIDE(
+--     ARRAY_LENGTH(IFNULL(b.equipo_validado, [])),
+--     ARRAY_LENGTH(IFNULL(a.lista_colaboradores, []))
+--   ) * 100,2) AS percent
+-- ,'' as Percent_con_penalizacion_x_incompletitud
+-- ,'' as Percent_de_error_en_precision
+-- ,'' as aux
+-- ,'' as Linea_de_Negocio
+-- ,'' as Pais
 -- from `tc-sc-bi-bigdata-edp-qa.sbox_jcarrion.teams_validation_data` as a
--- left join `tc-sc-bi-bigdata-edp-qa.sbox_jcarrion.response_validation_data` as b
+-- left join (
+--   select * 
+--   from `tc-sc-bi-bigdata-edp-qa.sbox_jcarrion.response_validation_data` as s
+--   QUALIFY ROW_NUMBER() OVER (PARTITION BY s.request_id ORDER BY s.responseTime DESC) = 1
+--   ) as b
 -- on a.request_id = b.request_id
--- where DATE(a.timestamp, "America/Santiago") = current_date()
+-- where DATE(a.timestamp, "America/Santiago") = current_date()-1
 -- order by a.timestamp desc;
+
+-- select *
+-- from `tc-sc-bi-bigdata-edp-prod.trf_cor_cl_edp_restricted_prod.acc_btd_cor_emp_headcount_clear` as a
+
 

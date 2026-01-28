@@ -1,107 +1,177 @@
-## app/bigquery/bigquery_table.py
+## app/bigquery/bigquery_repository.py
 from google.cloud import bigquery
 from google.cloud.bigquery.exceptions import BigQueryError
 import pandas as pd
 
+from config.log_config import logger
+
+
 class BigQueryTableRepository:
-    def __init__(self, table, project_id, client):
-        self.table      = table
+    def __init__(self, table: str, project_id: str, client):
+        self.table = str(table)
         self.project_id = project_id
-        self.client     = client
-        self.table      = str(table)
-        self._loadSettings()
+        self.client = client
 
+        self._load_settings()
+
+        logger.debug(
+            "Inicializando BigQueryTableRepository | table=%s | project_id=%s | sandbox=%s",
+            self.table,
+            self.project_id,
+            self.sandbox,
+        )
     #########################################################
-    def _loadSettings(self):
+    def _load_settings(self):
         from config.config import settings
-        self.enviroment = settings.project_qa
-        self.sandbox    = settings.bigquery_sandbox_qa
-        self.stg_table  = str("stg_"+self.table)
+
+        self.environment = settings.project_qa
+        self.sandbox = settings.bigquery_sandbox_qa
+        self.stg_table = f"stg_{self.table}"
 
     #########################################################
-    def read(self) -> pd.DataFrame:
-        sql = f"""
-            SELECT *
-            FROM `{self.sandbox}.{self.table}`
-        """
-        return self.client.query(sql).to_dataframe()
+    def read_query(self, query: str) -> pd.DataFrame:
+        logger.debug("Ejecutando query de lectura")
+
+        try:
+            df = self.client.query(query).to_dataframe()
+            logger.info("Query ejecutada correctamente | filas=%s", len(df))
+            return df
+
+        except Exception as e:
+            logger.exception("Error ejecutando query de lectura")
+            return pd.DataFrame()
 
     #########################################################
-    def load_staging(self,data):
+    def load_staging(self, data: pd.DataFrame, dropTable: bool = False):
         df = pd.DataFrame(data)
         project = f"{self.project_id}.{self.sandbox}"
-        ### ---------------------------- ###
-        print(f"""Subiendo datos de la tabla {self.stg_table} !\n
-              {df.head(5) } \n""")
-        ### ---------------------------- ###
+
+        logger.info(
+            "Cargando datos a staging | tabla=%s | filas=%s | dropTable=%s",
+            self.stg_table,
+            len(df),
+            dropTable,
+        )
+        logger.debug("Preview staging (5 filas):\n%s", df.head(5))
         try:
             if df.empty:
-                raise ValueError("Dataframe vacio")
+                raise ValueError("Dataframe vacío")
 
-            query = f"""
-                DROP TABLE IF EXISTS `{project}.{self.stg_table}`;
-                """
-      ################# Ejecuta la consulta ##################
-            query_job = self.client.query(query)
+            if dropTable:
+                query_drop = f"DROP TABLE IF EXISTS `{project}.{self.stg_table}`;"
+                self.client.query(query_drop).result()
+
+                logger.warning(
+                    "Tabla staging eliminada antes de la carga | tabla=%s",
+                    self.stg_table,
+                )
 
             table_id = f"{self.sandbox}.{self.stg_table}"
             job_config = bigquery.LoadJobConfig(
-                schema=[
-                        bigquery.SchemaField("request_id", "STRING"),
-                        ])
+                schema=[bigquery.SchemaField("request_id", "STRING")]
+            )
 
-            job = self.client.load_table_from_dataframe(df, table_id, job_config=job_config)
-            job.result()
+            self.client.load_table_from_dataframe(
+                df, table_id, job_config=job_config
+            ).result()
 
-            response, msn = True,"OK"
+            logger.info("Carga a staging completada exitosamente | tabla=%s", table_id)
+            return True, "OK"
 
         except BigQueryError as e:
-            response,msn = False,f"BigQueryError: {e}"
-        except Exception as e:
-            response,msn = False,f"Exception: {e}"
-    
-        return response,msn
+            logger.exception("BigQueryError cargando staging | tabla=%s", self.stg_table)
+            return False, f"BigQueryError: {e}"
 
-    #########################################################    
+        except Exception as e:
+            logger.exception("Error inesperado cargando staging | tabla=%s", self.stg_table)
+            return False, f"Exception: {e}"
+
+    #########################################################
     def merge_into(self, table_final: str, config: dict):
         project = f"{self.project_id}.{self.sandbox}"
-        ### ---------------------------- ###
-        print(f"Ejecutando Merge de la tabla {self.table} !")
-        ### ---------------------------- ###
+        logger.info(
+            "Iniciando MERGE | staging=%s | tabla_final=%s",
+            self.stg_table,
+            table_final,
+        )
+
         try:
-            pk = "".join(config["pk"])
-            columns = config["columns"]
-            insert_cols = ",\n  ".join(columns.keys())
-            insert_vals = ",\n  ".join(columns.values())
+            # ---------------- PK ---------------- #
+            if len(config["pk"]) > 1:
+                pk = " AND ".join(f"t.{i} = s.{i}" for i in config["pk"])
+            else:
+                pk = "".join(f"t.{i} = s.{i}" for i in config["pk"])
 
-            query = f"""                
-                MERGE `{project}.{table_final}` t
-                USING `{project}.{self.stg_table}` s
-                ON t.{pk} = s.{pk}
+            # ---------------- INSERT ---------------- #
+            insert_cols = ",\n  ".join(config["columns"].keys())
+            insert_vals = ",\n  ".join(config["columns"].values())
+            order_by = ", ".join(config["order_by"].keys())
 
-                WHEN NOT MATCHED THEN
+            # ---------------- UPDATE ---------------- #
+            update_set = ",\n  ".join(
+                f"{col} = {val}" for col, val in config["update"].items()
+            )
+
+            # ---------------- WHERE UPDATE ---------------- #
+            where_update_cfg = config.get("where_update", {})
+
+            if not any(where_update_cfg.values()):
+                where_set = ""
+                logger.debug("MERGE sin condición where_update")
+            else:
+                where_set = "\n ".join(
+                    f"AND t.{col} = {val}"
+                    for col, val in where_update_cfg.items()
+                )
+
+                logger.debug("where_update aplicado: %s", where_set)
+
+            query = f"""
+            MERGE `{project}.{table_final}` t
+            USING (
+                SELECT a.*
+                FROM `{project}.{self.stg_table}` AS a
+                QUALIFY ROW_NUMBER() OVER (
+                    PARTITION BY request_id
+                    ORDER BY {order_by} DESC
+                ) = 1
+            ) s
+            ON {pk}
+
+            WHEN MATCHED {where_set}
+            THEN
+                UPDATE SET
+                    {update_set}
+
+            WHEN NOT MATCHED THEN
                 INSERT (
-                         {insert_cols}
-                        )
+                    {insert_cols}
+                )
                 VALUES (
                     {insert_vals}
-                    );
-                
-                DROP TABLE `{project}.{self.stg_table}`;
-                """
-      ################# Ejecuta la consulta ##################
-            query_job = self.client.query(query)
-            response, msn = True,"OK"
-            # ### ---------------------------- ###
-            print(f"Merge de la tabla {self.table} Exitoso!")
-            # ### ---------------------------- ###
+                );
+            """
+
+            logger.debug("Query MERGE generada:\n%s", query)
+            self.client.query(query).result()
+            logger.info(
+                "MERGE completado exitosamente | tabla_final=%s",
+                table_final,
+            )
+            return True, "OK"
 
         except BigQueryError as e:
-            response,msn = False,f"BigQueryError: {e}"
-            print(f"BigQueryError: {e}")
+            logger.exception(
+                "BigQueryError durante MERGE | tabla_final=%s",
+                table_final,
+            )
+            return False, f"BigQueryError: {e}"
+
         except Exception as e:
-            response,msn = False,f"Exception: {e}"
-            print(f"Exception: {e}")
-        return response,msn
+            logger.exception(
+                "Error inesperado durante MERGE | tabla_final=%s",
+                table_final,
+            )
+            return False, f"Exception: {e}"
 
 

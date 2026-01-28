@@ -1,26 +1,61 @@
-#main.py
+# main.py
 import os
-import pandas as pd
 from app.flow.flow import *
 
-################################################
-os.system("cls")
-################################################
-file_dest  = "destinatarios_test"
-# step_descargar_destinatarios(
-#                             file_dest = file_dest
-#                              )
-################################################
-step_enviar_formularios(
-    archivo = file_dest
-    )
+def mostrar_menu():
+    print("\n================ MENÚ =================")
+    print("1️⃣  Descargar destinatarios")
+    print("2️⃣  Cargar data desde Power Automate (CSV)")
+    print("3️⃣  Reprocesar + Enviar + Persistir")
+    print("4️⃣  Ejecutar flujo completo")
+    print("0️⃣  Salir")
+    print("=======================================")
 
-################################################
-# data_auto = step_cargar_data_automate(
-#     path="C:/Users/genesys/Downloads",
-#     archivo = "test(Sheet1).csv")
+def main():
+    os.system("cls")
+    file_dest = "destinatarios"
 
-################################################
-# run_full_flow()
-################################################
+    while True:
+        mostrar_menu()
+        respuesta = input("Seleccione una opción: ").strip()
+        if respuesta == "1":
+            print("➡ Descargando destinatarios")
+            success, archivo = step_descargar_destinatarios(
+                file_dest=file_dest,
+                reprocesar=True
+            )
+
+        elif respuesta == "2":
+            print("➡ Cargando data desde Power Automate")
+            step_cargar_data_automate(
+                path="C:/Users/genesys/Downloads",
+                archivo="test(Sheet1).csv"
+            )
+
+        elif respuesta == "3":
+            print("➡ Reprocesando flujo parcial")
+            success, archivo = step_descargar_destinatarios(
+                file_dest=file_dest,
+                reprocesar=True
+            )
+
+            if success:
+                success = step_registrar_pendientes_bq(archivo)
+                if success:
+                    step_enviar_y_persistir_por_lotes(file_dest)
+
+        elif respuesta == "4":
+            print("➡ Ejecutando flujo completo")
+            run_full_flow()
+
+        elif respuesta == "0":
+            print("👋 Saliendo del programa")
+            break
+
+        else:
+            print(f"❌ Opción '{respuesta}' no válida")
+
+
+if __name__ == "__main__":
+    main()
 

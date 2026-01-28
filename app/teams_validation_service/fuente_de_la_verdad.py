@@ -1,3 +1,4 @@
+#app/teams_validation_service/fuente_de_la_verdad.py
 import json
 import warnings
 import pandas as pd
@@ -5,11 +6,13 @@ from pathlib import Path
 from google.cloud.bigquery.exceptions import BigQueryError
 from app.bigQuery.client.client import BigQueryClient
 from config.config import settings
+from config.log_config import logger
+from app.utills.utills import generar_request_id,reprocess
 
-########### config ##############
+################ config #################
 pd.set_option('display.max_rows', 5)
 warnings.simplefilter("ignore", UserWarning)
-#################################
+#########################################
 
 class ListaUsuarios:
   def __init__(self,name_file = None, project_id=settings.project_prod):
@@ -20,8 +23,13 @@ class ListaUsuarios:
        self.client      = BigQueryClient().ambientProd()
 
   #################################################################
-  def exec_query(self):
+  def exec_query(self,reprocesar:bool = True):
     ### Define tu consulta ###
+    logger.info(
+            "Iniciando exec_query | reprocesar=%s | proyecto=%s",
+            reprocesar,
+            self.project_id
+        )
     success,message,df_mensajes   = True,"OK",pd.DataFrame()
     try:
       query = f"""
@@ -30,7 +38,6 @@ class ListaUsuarios:
                   from `tc-sc-bi-bigdata-edp-prod.trf_cor_cl_edp_restricted_prod.acc_btd_cor_emp_headcount_clear` as a
                   where emp_update_period = 202512 and (a.emp_end_date_employer >= "2025-12-31"
                                                         or a.emp_end_date_employer is null)
-
                   qualify row_number() over(partition by a.emp_id_corp order by emp_start_date_employer desc ) = 1
                   )
 
@@ -60,22 +67,25 @@ class ListaUsuarios:
               and hc.emp_job_subfamily_code not in ('TM-4','TM-3')
               ---
               and mana.emp_corp_email_clear is not null
+              and mana.emp_business_name not in ('Hub Digital','Homecenter Sodimac Corona')
               -------------------
-              and lower(mana.emp_corp_email_clear) in ("bespinola@falabella.cl",
-              "asotog@falabella.cl",
-              "aoliveira@falabella.cl",
-              "cpperez@falabella.cl")
+              --and lower(mana.emp_corp_email_clear) in ("bespinola@falabella.cl",
+              --"asotog@falabella.cl",
+              --"aoliveira@falabella.cl",
+              --"cpperez@falabella.cl")
 
               group by all
               qualify count(1) over (partition by mana.emp_id_corp_clear ) < 25
               order by  mana.emp_corp_email_clear,hc.emp_corp_email_clear asc
-              limit 10
+              limit 3000
               """
 
       ### Ejecuta la consulta
+      logger.info("Ejecutando query en BigQuery")
       query_job = self.client.query(query)
       ### Recupera los resultados de la consulta y conviértelos en un DataFrame de Pandas
       df_main = query_job.result().to_dataframe()
+      logger.info("Query ejecutada correctamente | filas=%d", len(df_main))
       ### Agrupar por manager
       mensajes = []
 
@@ -111,7 +121,7 @@ class ListaUsuarios:
                   }},
                   {{
                     "type": "TextBlock",
-                    "text": "Selecciona qué colaboradores pertenecieron a tu equipo al 31 de diciembre del 2025:",
+                    "text": "Selecciona qué reportes directos pertenecieron a tu equipo al 31 de diciembre del 2025 (excluye externos y practicantes):",
                     "wrap": true
                   }},
                   {{
@@ -149,48 +159,61 @@ class ListaUsuarios:
               "mensaje": adaptive_card_dict
           })
 
-
       for m in mensajes:
           m["mensaje"] = json.dumps(m["mensaje"], ensure_ascii=False, indent=4)
 
       # Crear el DataFrame auxiliar
       df_mensajes = pd.DataFrame(mensajes)
-      
+      ############## genera id ################      
+      df_mensajes["request_id"] = df_mensajes["destinatario"].apply(generar_request_id)
+
       ############## pruebas ################
       df_mensajes["destinatario"] = "ext_jcarrion@Falabella.cl"
+      
+      if reprocesar:
+                logger.info("Iniciando reprocesamiento de request_id")
+                df_mensajes = reprocess(df_mensajes)
 
       ######################################
-      print(f"Archivo con {len(df_mensajes)} Registros")
-      success,message = self.downloadData(df_mensajes)
+      success,message = self.download_Data(df_mensajes)
+      logger.info(
+                "Proceso finalizado | success=%s | registros=%d",
+                success,
+                len(df_mensajes)
+            )
 
-    except BigQueryError as e:
-      success,message = False,f"BigQueryError:{e}"  
+    except BigQueryError:
+      logger.exception("Error BigQuery durante exec_query")
+      return False, "BigQueryError", pd.DataFrame()
 
-    except Exception as e:
-      success,message = False,f"Exception:{e}"
+    except Exception:
+      logger.exception("Error inesperado durante exec_query")
+      return False, "Exception", pd.DataFrame()
 
     return success,message,df_mensajes
 
   #################################################################
-  def downloadData(self,data:pd.DataFrame):
-    success,message = True,"OK"
+  def download_Data(self, data: pd.DataFrame):
+    success: bool = True
+    message: str = "OK"
+
     try:
-      if self.name_file == "None":
-        name_file = Path(self.dir_path,"output")
-        print("paso aca", self.name_file)
+      if self.path_file is None:
+            output_path = self.dir_path / "output"
       else:
-          name_file = self.path_file
+            output_path = self.path_file
 
-      data.to_excel(f"{name_file}.xlsx", index=False)
-      data.to_csv(f"{name_file}.csv", index=False,sep=";" ,encoding="utf-8")
+      logger.info("Guardando archivos de salida en %s", output_path)
 
-      ### -------------------------------------------------- ###
-      print("Archivo con Destinatarios Guardado en :",name_file)
-      ### -------------------------------------------------- ###
+      data.to_excel(f"{output_path}.xlsx", index=False)
+      data.to_csv(f"{output_path}.csv", index=False, sep=";", encoding="utf-8")
 
-    except Exception as e:
-      success,message = False,f"Exception:{e}"
+      logger.info("Archivos guardados correctamente")
 
-    return success,message
+    except Exception:
+        logger.exception("Error al guardar archivos de salida")
+        return False, "Exception"
+
+    return success, message
 
 
