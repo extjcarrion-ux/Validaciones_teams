@@ -24,7 +24,8 @@ class Settings(BaseSettings):
     path_result:Path          = Path("data/")
     archivo_log: str = Field(default="app") #Field('log_ejecucion')
     ###################################################
-
+    timesleep:int  = 30
+    ###################################################
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

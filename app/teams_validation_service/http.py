@@ -70,8 +70,8 @@ class EnvSolicitud:
     def _create_session(self) -> requests.Session:
         logger.debug("Creando sesión HTTP con retry")
         retry = Retry(
-            total=5,
-            backoff_factor=4,
+            total=4,
+            backoff_factor=1,
             status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["POST"],
             raise_on_status=False,
@@ -102,15 +102,24 @@ class EnvSolicitud:
 
     # -------------------------------------------------- #
     def _send_request(self, payload: dict) -> int:
-        logger.debug("Enviando request a Power Automate")
         response = self.session.post(
             self.url,
             json=payload,
-            timeout=15,
+            timeout=30,
         )
-        time.sleep(2)
-        logger.debug("Respuesta recibida | status_code=%s", response.status_code)
 
+        if response.status_code == 429:
+            retry_after = response.headers.get("Retry-After")
+            wait = int(retry_after) if retry_after else 10
+
+            logger.warning(
+                "429 recibido, esperando %s segundos antes de continuar",
+                wait,
+            )
+            time.sleep(wait)
+        else:
+            
+            logger.debug("Esperando ",time.sleep(settings.timesleep))
         return response.status_code
 
     # -------------------------------------------------- #
