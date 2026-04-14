@@ -2,7 +2,6 @@
 # app/flow/flow.py
 import time
 import pandas as pd
-
 from config.config import settings
 from config.log_config import logger
 

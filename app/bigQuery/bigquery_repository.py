@@ -1,10 +1,8 @@
 ## app/bigquery/bigquery_repository.py
+import pandas as pd
+from config.log_config import logger
 from google.cloud import bigquery
 from google.cloud.bigquery.exceptions import BigQueryError
-import pandas as pd
-
-from config.log_config import logger
-
 
 class BigQueryTableRepository:
     def __init__(self, table: str, project_id: str, client):
@@ -20,6 +18,7 @@ class BigQueryTableRepository:
             self.project_id,
             self.sandbox,
         )
+    
     #########################################################
     def _load_settings(self):
         from config.config import settings

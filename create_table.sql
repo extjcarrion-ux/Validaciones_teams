@@ -142,8 +142,7 @@ OPTIONS (
 -- on a.request_id = b.request_id
 -- where true
 
--- #### exclucion
-
+-- ###################### exclucion ############################################
 -- select
 -- a.request_id
 -- ,a.status_code

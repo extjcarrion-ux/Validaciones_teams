@@ -4,11 +4,12 @@ from app.flow.flow import *
 
 def mostrar_menu():
     print("\n================ MENÚ =================")
-    print("1️⃣  Descargar destinatarios")
-    print("2️⃣  Cargar data desde Power Automate (CSV)")
-    print("3️⃣  Reprocesar + Enviar + Persistir")
-    print("4️⃣  Ejecutar flujo completo")
-    print("0️⃣  Salir")
+    print("1  Descargar destinatarios")
+    print("2  Cargar data desde Power Automate (CSV)")
+    print("3  Reprocesar + Enviar + Persistir")
+    print("4  Enviar + Persistir")
+    print("5  Ejecutar flujo completo")
+    print("0  Salir")
     print("=======================================")
 
 def main():
@@ -45,6 +46,14 @@ def main():
                     step_enviar_y_persistir_por_lotes(file_dest)
 
         elif respuesta == "4":
+            print("➡ Reprocesando flujo parcial - solo envío y persistencia")
+
+            # if success:
+            #     success = step_registrar_pendientes_bq(archivo)
+            #     if success:
+            #         step_enviar_y_persistir_por_lotes(file_dest)
+
+        elif respuesta == "5":
             print("➡ Ejecutando flujo completo")
             run_full_flow()
 
@@ -54,7 +63,6 @@ def main():
 
         else:
             print(f"❌ Opción '{respuesta}' no válida")
-
 
 if __name__ == "__main__":
     main()

@@ -87,7 +87,6 @@ class EnvSolicitud:
     # -------------------------------------------------- #
     def _build_payload(self, request_id: str, destinatario: str, mensaje: str):
         colaboradores = get_array(mensaje)
-
         payload = {
             "request_id": request_id,
             "destinatario": destinatario,
@@ -118,8 +117,7 @@ class EnvSolicitud:
             )
             time.sleep(wait)
         else:
-            
-            logger.debug("Esperando ",time.sleep(settings.timesleep))
+            time.sleep(settings.timesleep)
         return response.status_code
 
     # -------------------------------------------------- #
