@@ -12,7 +12,7 @@
         },
         {
             "type": "TextBlock",
-            "text": "Selecciona qué colaboradores pertenecen a tu equipo:",
+            "text": "Please check which direct reportees belong to your team as of April 17, 2026 (exclude external staff and interns):",
             "wrap": true
         },
         {
@@ -21,51 +21,11 @@
             "isMultiSelect": true,
             "style": "expanded",
             "choices": [
-                {
-                    "title": "Pietro Angelo Giacchero Mebus (pgiacchero@sodimac.cl)",
-                    "value": "pgiacchero@sodimac.cl"
-                },
-                {
-                    "title": "Valentina Cueto Gaozza (vcueto@sodimac.cl)",
-                    "value": "vcueto@sodimac.cl"
-                },
-                {
-                    "title": "Pablo Andres Assael Repetto (paassael@sodimac.cl)",
-                    "value": "paassael@sodimac.cl"
-                },
-                {
-                    "title": "Monica Javiera Vega Sobarzo (mvegas@sodimac.cl)",
-                    "value": "mvegas@sodimac.cl"
-                },
-                {
-                    "title": "Francisco Ignacio Cubillos Baldessari (fcubillos@sodimac.cl)",
-                    "value": "fcubillos@sodimac.cl"
-                },
-                {
-                    "title": "Aníbal Esteban Segura Flores (asegura@sodimac.cl)",
-                    "value": "asegura@sodimac.cl"
-                },
-                {
-                    "title": "Luis Andres Zuñiga Adasme (luazunigaad@sodimac.cl)",
-                    "value": "luazunigaad@sodimac.cl"
-                },
-                {
-                    "title": "Pablo Eduardo  Yevenes Vitagliano (peyevenes@sodimac.cl)",
-                    "value": "peyevenes@sodimac.cl"
-                },
-                {
-                    "title": "Dino Francisco Girardi Donoso (dgirardi@sodimac.cl)",
-                    "value": "dgirardi@sodimac.cl"
-                },
-                {
-                    "title": "Monica Loreto Retamal Olivares (mlretamal@sodimac.cl)",
-                    "value": "mlretamal@sodimac.cl"
-                }
             ]
         },
         {
             "type": "Input.Toggle",
-            "title": "Falta alguien en la lista",
+            "title": "Someone is missing on the list",
             "id": "falta_gente",
             "valueOn": "1",
             "valueOff": "0"

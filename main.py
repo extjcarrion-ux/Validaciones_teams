@@ -1,57 +1,79 @@
 # main.py
 import os
-from app.flow.flow import *
+from pathlib import Path
+from config.log_config import logger
+from app.flow.flow import (
+    step_descargar_destinatarios,
+    step_cargar_data_automate,
+    step_registrar_pendientes_bq,
+    step_enviar_y_persistir_por_lotes,
+    run_full_flow,
+    step_leer_query,
+    step_cargar_dataframe)
 
 def mostrar_menu():
     print("\n================ MENÚ =================")
     print("1  Descargar destinatarios")
     print("2  Cargar data desde Power Automate (CSV)")
     print("3  Reprocesar + Enviar + Persistir")
-    print("4  Enviar + Persistir")
+    print("4  Enviar + Persistir (No Descarga destinatarios)")
     print("5  Ejecutar flujo completo")
     print("0  Salir")
     print("=======================================")
 
 def main():
-    os.system("cls")
+    os.system("cls" if os.name == "nt" else "clear")
     file_dest = "destinatarios"
 
     while True:
         mostrar_menu()
         respuesta = input("Seleccione una opción: ").strip()
+
         if respuesta == "1":
             print("➡ Descargando destinatarios")
             success, archivo = step_descargar_destinatarios(
-                file_dest=file_dest,
+                query_key=file_dest,
                 reprocesar=True
             )
 
+        ##### actualiza el CSV con Power Automate y lo carga a BigQuery
         elif respuesta == "2":
             print("➡ Cargando data desde Power Automate")
             step_cargar_data_automate(
-                path="C:/Users/genesys/Downloads",
+                path= Path.home()/"Downloads",
                 archivo="test(Sheet1).csv"
             )
 
         elif respuesta == "3":
-            print("➡ Reprocesando flujo parcial")
-            success, archivo = step_descargar_destinatarios(
-                file_dest=file_dest,
-                reprocesar=True
-            )
+            success,json_query = step_leer_query()
 
-            if success:
-                success = step_registrar_pendientes_bq(archivo)
-                if success:
-                    step_enviar_y_persistir_por_lotes(file_dest)
+            if success and json_query:
+                for key,value in json_query.items():
+                    logger.info("Descargar + Enviar + Persistir para key=%s", key)
+                    success, archivo = step_descargar_destinatarios(
+                                        query_key=key,
+                                        reprocesar=True)
+
+                    if success:
+                        success = step_registrar_pendientes_bq(archivo)
+                        if success:
+                            step_enviar_y_persistir_por_lotes(key)
 
         elif respuesta == "4":
             print("➡ Reprocesando flujo parcial - solo envío y persistencia")
+            success,json_query = step_leer_query()
 
-            # if success:
-            #     success = step_registrar_pendientes_bq(archivo)
-            #     if success:
-            #         step_enviar_y_persistir_por_lotes(file_dest)
+            if success and json_query:
+                for key,value in json_query.items():
+                    logger.info("Ejecutando flujo para key=%s", key)
+                    success,archivo=step_cargar_dataframe(key,reprocesar=True)
+
+                    if success:
+                        success = step_registrar_pendientes_bq(archivo)
+
+                        if success:
+                            step_enviar_y_persistir_por_lotes(key)
+
 
         elif respuesta == "5":
             print("➡ Ejecutando flujo completo")

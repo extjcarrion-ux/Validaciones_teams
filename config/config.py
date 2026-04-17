@@ -22,7 +22,10 @@ class Settings(BaseSettings):
     ###################################################
     path_output:Path          = Path("data/")
     path_result:Path          = Path("data/")
+    directory_querys:Path     = Path("config/")
+
     archivo_log: str = Field(default="app") #Field('log_ejecucion')
+    environment: str = Field(default="QA")
     ###################################################
     timesleep:int  = 30
     ###################################################
@@ -33,5 +36,4 @@ class Settings(BaseSettings):
     )
 
 settings = Settings()
-
 

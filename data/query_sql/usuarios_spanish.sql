@@ -14,7 +14,7 @@ with test as (
 select
 --------------------------------------------
 hc.emp_id_corp_clear,
-hc.emp_email_clear,
+hc.emp_email_clear as emp_corp_email_clear,
 concat(
 coalesce(hc.emp_first_name_clear,''),' ',
 coalesce(hc.emp_last_name_1_clear,''),' ',
@@ -42,3 +42,5 @@ and hc.emp_business_name not in ('Hub Digital','Homecenter Sodimac Corona')
 -------------------
 group by all
 order by  mana.emp_email_clear, hc.emp_email_clear asc
+
+limit 10

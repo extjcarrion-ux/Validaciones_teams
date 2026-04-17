@@ -61,6 +61,20 @@ def read_sql_file(file_path) -> tuple[bool,str]:
         logger.info(f"El archivo {file_path} existe.")        
         return True,file.read()
 
+def read_json_file(file_path):
+    try:
+      if not Path(file_path).is_file():
+          logger.error("El archivo JSON no existe: %s", file_path)
+          return {}
+
+      with open(file_path, 'r', encoding='utf-8') as file:
+          logger.info("El archivo JSON existe: %s", file_path)          
+          return json.load(file)
+    
+    except Exception as e:
+      logger.exception("Error al leer el archivo JSON: %s", file_path)
+      return {}
+
 # -------------------------------------------------- #
 def chunk_dataframe(df: pd.DataFrame, chunk_size: int):
     logger.info(f"Ejecutando chunk_dataframe" )
@@ -70,9 +84,8 @@ def chunk_dataframe(df: pd.DataFrame, chunk_size: int):
 # -------------------------------------------------- #
 def generar_request_id(destinatario: str) -> str:
     fecha = datetime.month
-    raw = f"{destinatario.lower().strip()}|{fecha}"
+    raw   = f"{destinatario.lower().strip()}|{fecha}"
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
-
 
 # -------------------------------------------------- #
 def random_mail():    
@@ -86,8 +99,6 @@ def validate_request_id(request_id:list) -> pd.DataFrame:
     logger.info(f"Ejecutando validate_request_id" )
     try:
         lista_request_id = "','".join(request_id)
-        
-        ambiente   = f"{settings.project_qa}.{settings.bigquery_sandbox_qa}"
         repo = BigQueryTableRepository(table = str("test")
                                     , project_id = str(settings.project_qa)
                                     , client = BigQueryClient().ambientQA())
@@ -141,14 +152,13 @@ def reprocess(dfA: pd.DataFrame) -> pd.DataFrame:
         lista_request = dfA["destinatario"].tolist()
         df_ids_b = validate_request_id(lista_request)
 
-        print("cantidad excluir",len(df_ids_b))
         if df_ids_b.empty:
             logger.info("No hay request_id a excluir")
             return dfA
 
         ids_b = set(df_ids_b["destinatario"])
 
-        # se excluyen los datos de ids_b
+        ### se excluyen los datos de ids_b
         dfA_filtrado = dfA[~dfA["destinatario"].isin(ids_b)]
 
         logger.info("Registros finales: %d", len(dfA_filtrado))
@@ -157,6 +167,4 @@ def reprocess(dfA: pd.DataFrame) -> pd.DataFrame:
     except Exception:
         logger.exception("Error durante reprocesamiento")
         return dfA
-
-
 

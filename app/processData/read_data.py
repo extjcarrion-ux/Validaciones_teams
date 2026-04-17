@@ -7,7 +7,7 @@ from config.log_config import logger
 from app.utills.utills import get_encoding, get_date_time
 
 class ProcessFile:
-    def __init__(self, path: str, archivo: str):
+    def __init__(self, path: Path, archivo: str):
         self.path = Path(path)
         self.file = archivo
 

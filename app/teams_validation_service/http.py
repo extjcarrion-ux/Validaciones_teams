@@ -29,8 +29,9 @@ class EnvSolicitud:
             self.file_dest,
             self.url,
         )
-
         self.session = self._create_session()
+        print("\neste es el nombre del archivo", self.file_dest
+              ,'\n')
 
     # -------------------------------------------------- #
     def lista_destinatarios(self):
