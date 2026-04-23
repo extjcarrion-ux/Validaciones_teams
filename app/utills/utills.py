@@ -103,47 +103,47 @@ def validate_request_id(request_id:list) -> pd.DataFrame:
                                     , project_id = str(settings.project_qa)
                                     , client = BigQueryClient().ambientQA())
         query_search = f"""
-                    with teams_validation_data
-                    as
-                    (
-                    select *
-                    from `tc-sc-bi-bigdata-edp-qa.sbox_jcarrion.teams_validation_data` as a
-                    QUALIFY ROW_NUMBER() OVER (PARTITION BY a.destinatario ORDER BY a.timestamp DESC) = 1
-                    )
-                    select
-                    case
-                    when trim(b.submitActionId) = 'Enviar' then a.destinatario
-                    when trim(b.submitActionId) in ('Flujo quedó esperando - Nadie respondió la tarjeta')
-                    then a.destinatario
-                    when trim(b.submitActionId) in ('Error técnico - Tarjeta no válida o fallo de Teams')
-                    and b.Q <4 then "No Aplica"
-                    when b.submitActionId is null and a.status_code = 202 then a.destinatario
-                    else "No Aplica" end as destinatario
+            with teams_validation_data
+            as
+            (
+            select *
+            from `tc-sc-bi-bigdata-edp-qa.sbox_jcarrion.teams_validation_data` as a
+            QUALIFY ROW_NUMBER() OVER (PARTITION BY a.destinatario ORDER BY a.timestamp DESC) = 1
+            )
+            select
+            case
+            when trim(b.submitActionId) = 'Enviar' then a.destinatario
+            when trim(b.submitActionId) in ('Flujo quedó esperando - Nadie respondió la tarjeta')
+            then a.destinatario
+            when trim(b.submitActionId) in ('Error técnico - Tarjeta no válida o fallo de Teams')
+            and b.Q <4 then "No Aplica"
+            when b.submitActionId is null and a.status_code = 202 then a.destinatario
+            else "No Aplica" end as destinatario
 
-                    from `teams_validation_data` as a
-                    left join ( 
-                            select b.*,c.Q
-                            from `tc-sc-bi-bigdata-edp-qa.sbox_jcarrion.response_validation_data` as b
-                            -------------------------------------
-                            left join (
-                                        select b.request_id,b.submitActionId, count(b.submitActionId) Q
-                                        from `tc-sc-bi-bigdata-edp-qa.sbox_jcarrion.response_validation_data` as b
-                                        group by b.request_id,b.submitActionId
-                            ) as c on b.request_id = c.request_id
-                            -------------------------------------
-                            QUALIFY ROW_NUMBER() OVER (PARTITION BY b.request_id ORDER BY b.responseTime DESC) = 1
-                            ) as b
-                    on a.request_id = b.request_id
-                    where true
-                and a.destinatario in ('{lista_request_id}')
-                order by a.timestamp desc"""
+            from `teams_validation_data` as a
+            left join ( 
+                    select b.*,c.Q
+                    from `tc-sc-bi-bigdata-edp-qa.sbox_jcarrion.response_validation_data` as b
+                    -------------------------------------
+                    left join (
+                                select b.request_id,b.submitActionId, count(b.submitActionId) Q
+                                from `tc-sc-bi-bigdata-edp-qa.sbox_jcarrion.response_validation_data` as b
+                                group by b.request_id,b.submitActionId
+                    ) as c on b.request_id = c.request_id
+                    -------------------------------------
+                    QUALIFY ROW_NUMBER() OVER (PARTITION BY b.request_id ORDER BY b.responseTime DESC) = 1
+                    ) as b
+            on a.request_id = b.request_id
+            where true
+        and a.destinatario in ('{lista_request_id}')
+        order by a.timestamp desc
+        """
         result_query = repo.read_query(query_search)
         return result_query
 
     except Exception as e:
             logger.error(f"Exception : {e}" )
             return pd.DataFrame()
-
 
 # -------------------------------------------------- #
 def reprocess(dfA: pd.DataFrame) -> pd.DataFrame:

@@ -1,26 +1,29 @@
 #### test.py
 import os
-from app.flow.flow import *
+from pathlib import Path
+from config.config import settings
+from config.log_config import logger
+from app.flow.flow import (read_json_file,
+    step_descargar_destinatarios,
+    step_cargar_data_automate,
+    step_registrar_pendientes_bq,
+    step_enviar_y_persistir_por_lotes,
+    run_full_flow,
+    step_leer_query,
+    step_cargar_dataframe
+    )
 
 def main():
     os.system("cls")
-    ####################################
-    print("➡ Reprocesando flujo parcial")
-    success,json_query = step_leer_query()
+    json_query = read_json_file(settings.directory_querys)
 
-    if success and json_query:
-      for key,value in json_query.items():
-        logger.info("Ejecutando flujo para key=%s", key)
-        success,archivo=step_cargar_dataframe(key)
+    for item in json_query:
+        logger.info("Procesando key=%s", item)
+        success, archivo = step_descargar_destinatarios(
+                                        query_key=item,
+                                        reprocesar=True)
 
-        if success:
-            success = step_registrar_pendientes_bq(archivo)
-
-            if success:
-              step_enviar_y_persistir_por_lotes(key)
-
-if __name__ == "__main__":
-    main()
+main()
 
 
 

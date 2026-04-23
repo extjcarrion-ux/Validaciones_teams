@@ -88,7 +88,7 @@ def step_descargar_destinatarios(query_key: str, reprocesar: bool = True):
 
     sql_file = data_json.get("query_sql")
     json_file = data_json.get("schema")
-    
+
     if not sql_file:
         raise ValueError("No se encontró 'query_sql' en la configuración")
 
@@ -98,7 +98,7 @@ def step_descargar_destinatarios(query_key: str, reprocesar: bool = True):
     lista = ListaUsuarios(query_key)
     success, msg, archivo = lista.exec_query(reprocesar
                                                 ,sql_file=sql_file
-                                                ,json_template= json_file)
+                                                ,json_template=json_file)
 
     logger.info(
         "Descarga de destinatarios exitosa | registros=%d",
@@ -164,7 +164,8 @@ def step_cargar_data_automate(path: Path, archivo: str):
         tabla_response
     )
     try:
-        data = ProcessFile(path=path, archivo=archivo)
+        data = ProcessFile(path=path
+                           ,archivo=archivo)
         parametros = MERGE_CONFIG[tabla_response]
         success, state, df_data = data.read_csv(parametros)
 
@@ -188,8 +189,8 @@ def step_enviar_y_persistir_por_lotes(
 
     logger.info(
         "Inicio envío por lotes | archivo=%s | chunk_size=%d",
-        archivo,
-        chunk_size)
+        archivo
+        ,chunk_size)
 
     tabla_bq  = settings.allowed_bq_tables["data_teams"]
     json_dest = EnvSolicitud(archivo)

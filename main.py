@@ -1,8 +1,9 @@
 # main.py
 import os
 from pathlib import Path
+from config.config import settings
 from config.log_config import logger
-from app.flow.flow import (
+from app.flow.flow import (read_json_file,
     step_descargar_destinatarios,
     step_cargar_data_automate,
     step_registrar_pendientes_bq,
@@ -29,12 +30,16 @@ def main():
         mostrar_menu()
         respuesta = input("Seleccione una opción: ").strip()
 
+        ##################################
         if respuesta == "1":
             print("➡ Descargando destinatarios")
-            success, archivo = step_descargar_destinatarios(
-                query_key=file_dest,
-                reprocesar=True
-            )
+            json_query = read_json_file(settings.directory_querys)
+
+            for item in json_query:
+                logger.info("Procesando key=%s", item)
+                success, archivo = step_descargar_destinatarios(
+                                                query_key=item,
+                                                reprocesar=True)
 
         ##### actualiza el CSV con Power Automate y lo carga a BigQuery
         elif respuesta == "2":
@@ -44,6 +49,7 @@ def main():
                 archivo="test(Sheet1).csv"
             )
 
+        ##################################
         elif respuesta == "3":
             success,json_query = step_leer_query()
 
@@ -59,6 +65,7 @@ def main():
                         if success:
                             step_enviar_y_persistir_por_lotes(key)
 
+        ##################################
         elif respuesta == "4":
             print("➡ Reprocesando flujo parcial - solo envío y persistencia")
             success,json_query = step_leer_query()
@@ -74,15 +81,17 @@ def main():
                         if success:
                             step_enviar_y_persistir_por_lotes(key)
 
-
+        ##################################
         elif respuesta == "5":
             print("➡ Ejecutando flujo completo")
             run_full_flow()
 
+        ##################################
         elif respuesta == "0":
             print("👋 Saliendo del programa")
             break
 
+        ##################################
         else:
             print(f"❌ Opción '{respuesta}' no válida")
 

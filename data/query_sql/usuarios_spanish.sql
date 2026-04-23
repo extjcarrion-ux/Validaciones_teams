@@ -1,12 +1,9 @@
 --ESPAÑOL
 with test as (
-  select  ab.*, ac.employer_fiscal_country from tc-sc-bi-bigdata-edp-prod.acc_cor_corp_edp_restricted_prod.vw_trf_cor_emp_headcount_auto ab
-  left join `tc-sc-bi-bigdata-edp-prod.xref_cor_hran_edp_prod.xref_hran_corp_employer` ac
-  on ab.emp_employer_tax_id=ac.emp_employer_id
+  select *
+  from `tc-sc-bi-bigdata-edp-qa.sbox_jcarrion.vw_trf_cor_emp_headcount_auto` as a
   where end_Date is null and emp_update_period=202604 
   and (emp_end_date_employer >= "2026-04-30" or emp_end_date_employer is null) and data_source='EC'
-  and active_ind=true 
-  and manual_feed_end_date<=current_date()
   group by all
   qualify row_number() over(partition by emp_id_corp order by emp_start_date_employer desc ) = 1
   )
@@ -38,9 +35,9 @@ and mana.emp_job_subfamily_code not in ('TM-4','TM-3')
 ---
 and mana.emp_email_clear is not null
 and hc.emp_business_name not in ('Hub Digital','Homecenter Sodimac Corona')
-
+AND hc.emp_email_clear IS NOT NULL
 -------------------
 group by all
 order by  mana.emp_email_clear, hc.emp_email_clear asc
 
-limit 10
+--limit 100
