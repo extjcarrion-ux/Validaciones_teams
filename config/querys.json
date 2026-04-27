@@ -4,8 +4,12 @@
     {"schema":"app/json_schema/ingles_schema.json",
     "query_sql":"data/query_sql/usuarios_ingles.sql"}
     
-,"usuarios_spanish": 
+,"usuarios_spanish":
     {"schema":"app/json_schema/spanish_schema.json",
     "query_sql":"data/query_sql/usuarios_spanish.sql"}
+
+,"usuarios_agregados":
+    {"schema":"app/json_schema/spanish_schema.json",
+    "query_sql":"data/query_sql/usuarios_agregados.sql"}
 }
 

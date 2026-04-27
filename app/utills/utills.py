@@ -113,12 +113,12 @@ def validate_request_id(request_id:list) -> pd.DataFrame:
             select
             case
             when trim(b.submitActionId) = 'Enviar' then a.destinatario
-            when trim(b.submitActionId) in ('Flujo quedó esperando - Nadie respondió la tarjeta')
-            then a.destinatario
-            when trim(b.submitActionId) in ('Error técnico - Tarjeta no válida o fallo de Teams')
-            and b.Q <4 then "No Aplica"
-            when b.submitActionId is null and a.status_code = 202 then a.destinatario
-            else "No Aplica" end as destinatario
+            when trim(b.submitActionId) in ('Flujo quedó esperando - Nadie respondió la tarjeta'
+                                            ,'Error técnico - Tarjeta no válida o fallo de Teams')
+            and b.Q <3 then "Reenviar Aplica"
+            when trim(b.submitActionId) = "" and a.status_code = 202 then a.destinatario
+            ---"No Aplica Reenviar"
+            else a.destinatario end as destinatario
 
             from `teams_validation_data` as a
             left join ( 
