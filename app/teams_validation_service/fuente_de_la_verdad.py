@@ -4,6 +4,7 @@ import copy
 import warnings
 import pandas as pd
 from pathlib import Path
+from typing import Tuple, Optional
 from google.cloud.bigquery.exceptions import BigQueryError
 from app.bigQuery.client.client import BigQueryClient
 from config.config import settings
@@ -19,7 +20,25 @@ warnings.simplefilter("ignore", UserWarning)
 #########################################
 
 class ListaUsuarios:
-  def __init__(self,name_file = None, project_id=settings.project_prod):
+  """
+    Servicio encargado de:
+
+    - Ejecutar consultas en BigQuery
+    - Procesar resultados agrupados por manager
+    - Generar mensajes en formato Adaptive Card (JSON)
+    - Aplicar lógica de reprocesamiento
+    - Exportar resultados a archivos CSV y Excel
+
+    Este flujo está diseñado para validar equipos y enviar información
+    estructurada a sistemas externos como Microsoft Teams.
+  """
+  def __init__(self,name_file:Optional[str] = None, project_id=settings.project_prod) -> None:
+       """
+        Inicializa la clase ListaUsuarios.
+        Args:
+            name_file (Optional[str]): Nombre del archivo de salida (sin extensión).
+            project_id (str): ID del proyecto en BigQuery.
+        """
        self.name_file   = str(name_file)
        self.dir_path    = Path(settings.path_output)
        self.path_file   = Path(settings.path_output,self.name_file)
@@ -27,13 +46,41 @@ class ListaUsuarios:
        self.client      = BigQueryClient().ambientProd()
 
   #################################################################
-  def exec_query(self,reprocesar:bool = True,sql_file:Path = Path("")
-                 ,json_template:Path = Path("data/")) -> tuple[bool,str,pd.DataFrame]:
+  def exec_query(self,reprocesar:bool = True,sql_file:Optional[Path] = None
+                 ,json_template:Path = Path("data/")
+                 ) -> tuple[bool,str,pd.DataFrame]:
     """
-    reprocesar: bool = True -> Si es True, se compara con datos de formularios ya enviados
-                               con el fin de reenviar si corresponde. Si es False, envia todo lo que esta en la query proporcionada. 
-    sql_file: Path("") -> Ruta del archivo SQL a ejecutar. Si no se proporciona, se usará el SQL por defecto.
-    """
+        Ejecuta una query en BigQuery, procesa los resultados y genera mensajes por manager.
+        Flujo:
+            1. Lee el archivo SQL
+            2. Ejecuta la consulta en BigQuery
+            3. Agrupa resultados por manager
+            4. Construye mensajes (Adaptive Cards)
+            5. Genera request_id por destinatario
+            6. (Opcional) Aplica reprocesamiento
+            7. Exporta resultados a archivos
+
+        Args:
+            reprocesar (bool):
+                - True: Filtra y reprocesa registros ya enviados
+                - False: Envía todos los registros sin validación
+
+            sql_file (Optional[Path]):
+                Ruta del archivo SQL a ejecutar.
+
+            json_template (Path):
+                Ruta del archivo JSON que actúa como template para los mensajes.
+
+        Returns:
+            Tuple[bool, str, pd.DataFrame]:
+                - success (bool): Estado de ejecución
+                - message (str): Mensaje descriptivo
+                - df_mensajes (pd.DataFrame): DataFrame con los mensajes generados
+
+        Raises:
+            BigQueryError: Error durante la ejecución de la query
+            Exception: Error inesperado en el proceso
+        """
     logger.info(
             "Iniciando exec_query | reprocesar=%s | proyecto=%s",
             reprocesar,
@@ -125,7 +172,17 @@ class ListaUsuarios:
     return success,message,df_mensajes
 
   #################################################################
-  def _download_Data(self, data: pd.DataFrame):
+  def _download_Data(self, data: pd.DataFrame) -> Tuple[bool, str]:
+    """
+        Guarda el DataFrame en archivos CSV y Excel.
+        Args:
+            data (pd.DataFrame): DataFrame a exportar.
+
+        Returns:
+            Tuple[bool, str]:
+                - success (bool): Estado de la operación
+                - message (str): Mensaje descriptivo
+        """
     success: bool = True
     message: str = "OK"
 

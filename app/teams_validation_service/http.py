@@ -18,7 +18,24 @@ warnings.simplefilter("ignore", UserWarning)
 
 
 class EnvSolicitud:
-    def __init__(self, file_dest: str):
+    """
+    Servicio encargado del envío de solicitudes HTTP hacia un endpoint
+    (por ejemplo, Power Automate), utilizando información previamente generada.
+
+    Funcionalidades principales:
+        - Leer archivo de destinatarios desde Excel
+        - Construir payloads JSON
+        - Enviar solicitudes HTTP con manejo de retries
+        - Registrar resultados de ejecución
+    """
+    def __init__(self, file_dest: str) -> None:
+        """
+        Inicializa el servicio de envío.
+
+        Args:
+            file_dest (str): Nombre del archivo Excel (sin extensión)
+                             que contiene destinatarios y mensajes.
+        """
         self.file_dest = file_dest
         self.dir_path = Path(settings.path_output)
         self.file_result = Path(settings.path_result)
@@ -34,7 +51,25 @@ class EnvSolicitud:
               ,'\n')
 
     # -------------------------------------------------- #
-    def lista_destinatarios(self):
+    def lista_destinatarios(self) -> tuple[bool, str, pd.DataFrame]:
+        """
+        Lee un archivo Excel y obtiene la lista de destinatarios.
+
+        El archivo debe contener al menos dos columnas:
+            - destinatario
+            - mensaje
+
+        Returns:
+            Tuple[bool, str, pd.DataFrame]:
+                - success (bool): Estado de la operación
+                - message (str): Mensaje descriptivo
+                - df (pd.DataFrame): DataFrame con columnas normalizadas
+
+        Errores:
+            - Archivo no existe
+            - Archivo no es .xlsx
+            - Error de formato en Excel
+        """
         logger.info("Procesando lista de destinatarios")
 
         file_path = self.dir_path / f"{self.file_dest}.xlsx"
@@ -69,6 +104,18 @@ class EnvSolicitud:
 
     # -------------------------------------------------- #
     def _create_session(self) -> requests.Session:
+        """
+        Crea una sesión HTTP con política de reintentos (retry).
+
+        Configuración:
+            - Reintentos totales: 4
+            - Backoff exponencial
+            - Códigos a reintentar: 429, 500, 502, 503, 504
+            - Método permitido: POST
+
+        Returns:
+            requests.Session: Sesión configurada con retry.
+        """
         logger.debug("Creando sesión HTTP con retry")
         retry = Retry(
             total=4,
@@ -77,7 +124,7 @@ class EnvSolicitud:
             allowed_methods=["POST"],
             raise_on_status=False,
         )
-
+        
         adapter = HTTPAdapter(max_retries=retry)
         session = requests.Session()
         session.mount("https://", adapter)
@@ -86,13 +133,29 @@ class EnvSolicitud:
         return session
 
     # -------------------------------------------------- #
-    def _build_payload(self, request_id: str, destinatario: str, mensaje: str):
+    def _build_payload(self, request_id: str
+                       , destinatario: str, mensaje: str) -> tuple[str, dict, list]:
+        """
+        Construye el payload JSON a enviar.
+
+        Args:
+            request_id (str): Identificador único de la solicitud
+            destinatario (str): Correo o identificador del destinatario
+            mensaje (str): Mensaje en formato JSON/string
+
+        Returns:
+            Tuple[str, dict, list]:
+                - request_id
+                - payload (dict): Estructura JSON para envío
+                - colaboradores (list): Lista extraída desde el mensaje
+        """
         colaboradores = get_array(mensaje)
         payload = {
             "request_id": request_id,
             "destinatario": destinatario,
             "mensaje": mensaje,
         }
+
         logger.debug(
             "Payload construido | request_id=%s | destinatario=%s",
             request_id,
