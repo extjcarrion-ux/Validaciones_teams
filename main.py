@@ -12,6 +12,7 @@ from app.flow.flow import (read_json_file,
     step_leer_query,
     step_cargar_dataframe)
 
+
 def mostrar_menu():
     print("\n================ MENÚ =================")
     print("1  Descargar destinatarios")
@@ -97,4 +98,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

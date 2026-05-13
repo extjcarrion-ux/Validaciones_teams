@@ -189,8 +189,7 @@ def step_enviar_y_persistir_por_lotes(
 
     logger.info(
         "Inicio envío por lotes | archivo=%s | chunk_size=%d",
-        archivo
-        ,chunk_size)
+        archivo,chunk_size)
 
     tabla_bq  = settings.allowed_bq_tables["data_teams"]
     json_dest = EnvSolicitud(archivo)
@@ -198,9 +197,8 @@ def step_enviar_y_persistir_por_lotes(
 
     ######################################################
     if settings.environment == "QA":
-        df_destinatarios["destinatario"] = "ext_jcarrion@Falabella.cl"
+        df_destinatarios["destinatario"] = settings.correo_qa
     ######################################################
-    print(df_destinatarios)
 
     if not success:
         logger.error("Error obteniendo destinatarios | msg=%s", msg)

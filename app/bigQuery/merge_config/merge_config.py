@@ -2,6 +2,7 @@
 MERGE_CONFIG = {
     "teams_validation_data": {
         "pk": ["request_id"],
+        # solo esto inserta
         "columns": {
             "request_id": "s.request_id",
             "destinatario": "s.destinatario",
@@ -10,12 +11,14 @@ MERGE_CONFIG = {
             "success": "s.success",
             "timestamp": "TIMESTAMP(s.timestamp)"
         },
+       # solo esto update
         "update":{
             "status_code": "s.status_code",
             "success": "s.success",
             "timestamp": "TIMESTAMP(s.timestamp)",
             "lista_colaboradores": "s.lista_colaboradores",
             },
+       ##### solo esto update
         "where_update":{
             "success": "false",
             },
@@ -26,6 +29,7 @@ MERGE_CONFIG = {
 
     "response_validation_data": {
         "pk": ["request_id","responseTime"],
+       ##### solo esto inserta
         "columns": {
             "request_id": "s.request_id",
             "messageId": "s.messageId",
@@ -41,6 +45,7 @@ MERGE_CONFIG = {
             "falta_gente": "s.falta_gente",
             "edp_load_datetime": "TIMESTAMP(s.edp_load_datetime)"
         },
+
         "update": {
             "request_id": "s.request_id",
             "messageId": "s.messageId",

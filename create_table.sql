@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------
-CREATE TABLE `tc-sc-bi-bigdata-edp-qa.sbox_jcarrion.teams_validation_data` (
+CREATE TABLE `teams_validation_data` (
   request_id STRING NOT NULL,
   destinatario STRING,
   lista_colaboradores ARRAY<STRING>,
@@ -12,9 +12,9 @@ OPTIONS (
 );
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
-DROP TABLE IF EXISTS `tc-sc-bi-bigdata-edp-qa.sbox_jcarrion.response_validation_data`;
+DROP TABLE IF EXISTS `response_validation_data`;
 
-CREATE TABLE `tc-sc-bi-bigdata-edp-qa.sbox_jcarrion.response_validation_data` (
+CREATE TABLE `response_validation_data` (
   -- Identificadores
   request_id STRING NOT NULL,
   messageId STRING,

@@ -114,7 +114,9 @@ Clase `Settings` (Pydantic BaseSettings) que gestiona la configuración del proy
 | `directory_querys` | Path | Ruta de configuración queries (config/) |
 | `archivo_log` | str | Nombre del archivo log |
 | `environment` | str | Ambiente (QA/PROD) |
+| `correo_qa` | str | si environment = QA, se sobreescribe el correo destinatario |
 | `timesleep` | int | Tiempo espera entre operaciones (segundos) |
+| `chunk_size` | str | Numero de los registros que se van a procesar por cada iteracion |
 
 **Lectura desde `.env`**: La clase lee automáticamente variables desde archivo `.env`
 
@@ -529,11 +531,30 @@ ver librerias en archivo "requirements.txt"
 ## 📌 Notas Importantes
 
 - **SharePoint**: Cliente comentado (no en uso actual)
-- **Cross-check**: Archivo parcialmente implementado
+- **Cross-check**: No se usa actualmente
 - **Encoding automático**: Usa `chardet` para detectar encoding de archivos
 - **Retry automático**: HTTP requests con 4 reintentos
 - **Logging rotativo**: 5 archivos backup de 10 MB cada uno
+- **Cambios en Tabla SQL**:  
+  Cualquier modificación en la estructura de las tablas de BigQuery debe ser modificada en los siguientes archivos de configuración y definición:
 
+  1. **Script de creación de tablas `create_table.sql`**  
+     Archivo ubicado en la raíz de la aplicación. contiene la estructura de las tablas a poblar
+
+  2. **Variable de entorno `allowed_bq_tables`**  
+     Ubicada en: `config/config.py`. solo se considerara la modificación de las tablas que se encuentran en este diccionario
+
+     ```python
+     allowed_bq_tables: dict[str, str] = Field(
+         default_factory=lambda: {
+             "data_teams": "teams_validation_data",
+             "data_automate": "response_validation_data"
+         }
+     )
+     ```
+
+  3. **Archivo de configuración de merges**
+     Ubicado en: `app/bigQuery/merge_config/merge_config.py`. contiene la estrucuta valida con la que se realizara cualquier insert/update u otro cambio en las tablas
 ---
 
 ## 📚 Dependencias Principales

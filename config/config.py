@@ -26,6 +26,7 @@ class Settings(BaseSettings):
 
     archivo_log: str = Field(default="app") #Field('log_ejecucion')
     environment: str = Field(default="QA")
+    correo_qa: Optional[str] = Field(default=None)
     ###################################################
     timesleep:int  = 30
     chunk_size:int  = 5    
