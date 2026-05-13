@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     environment: str = Field(default="QA")
     ###################################################
     timesleep:int  = 30
+    chunk_size:int  = 5    
     ###################################################
     model_config = SettingsConfigDict(
         env_file=".env",

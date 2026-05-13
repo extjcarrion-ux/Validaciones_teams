@@ -22819,3 +22819,16 @@
 2026-04-30 09:25:44 - app - INFO - Iniciando MERGE | staging=stg_response_validation_data | tabla_final=response_validation_data
 2026-04-30 09:25:47 - app - INFO - MERGE completado exitosamente | tabla_final=response_validation_data
 2026-04-30 09:25:47 - app - INFO - Carga BigQuery finalizada correctamente | tabla=response_validation_data
+2026-05-13 12:18:30 - app - INFO - Cargando data Automate | archivo=test(Sheet1).csv | tabla=response_validation_data
+2026-05-13 12:18:30 - app - INFO - Procesando archivo | ruta=C:\Users\genesys\Downloads\test(Sheet1).csv
+2026-05-13 12:18:30 - app - INFO - Leyendo archivo CSV | columnas_esperadas=13
+2026-05-13 12:18:30 - app - INFO - Ejecutando get_encoding
+2026-05-13 12:18:30 - app - INFO - Generando hash por fila | columnas_pk=['request_id', 'responseTime']
+2026-05-13 12:18:30 - app - INFO - Archivo procesado correctamente | filas=3269
+2026-05-13 12:18:30 - app - INFO - Cargando datos en BigQuery | tabla=response_validation_data | registros=3269 | dropTable=True
+2026-05-13 12:18:36 - app - INFO - Cargando datos a staging | tabla=stg_response_validation_data | filas=3269 | dropTable=True
+2026-05-13 12:18:38 - app - WARNING - Tabla staging eliminada antes de la carga | tabla=stg_response_validation_data
+2026-05-13 12:18:43 - app - INFO - Carga a staging completada exitosamente | tabla=sbox_jcarrion.stg_response_validation_data
+2026-05-13 12:18:43 - app - INFO - Iniciando MERGE | staging=stg_response_validation_data | tabla_final=response_validation_data
+2026-05-13 12:18:46 - app - INFO - MERGE completado exitosamente | tabla_final=response_validation_data
+2026-05-13 12:18:46 - app - INFO - Carga BigQuery finalizada correctamente | tabla=response_validation_data

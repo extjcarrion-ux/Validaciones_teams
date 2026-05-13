@@ -185,7 +185,7 @@ def step_cargar_data_automate(path: Path, archivo: str):
 # -------------------------------------------------- #
 def step_enviar_y_persistir_por_lotes(
     archivo: str,
-    chunk_size: int = 5):
+    chunk_size: int = settings.chunk_size):
 
     logger.info(
         "Inicio envío por lotes | archivo=%s | chunk_size=%d",
