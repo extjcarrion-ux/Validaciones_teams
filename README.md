@@ -118,8 +118,36 @@ Clase `Settings` (Pydantic BaseSettings) que gestiona la configuración del proy
 | `timesleep` | int | Tiempo espera entre operaciones (segundos) |
 | `chunk_size` | str | Numero de los registros que se van a procesar por cada iteracion |
 
-**Lectura desde `.env`**: La clase lee automáticamente variables desde archivo `.env`
+**Lectura desde `.env`**: La clase lee automáticamente variables desde archivo `.env` en la raiz del proyecto
 
+### 'template .env'
+```.env
+project_prod="name_project_prod"
+project_qa="name_project_qa"
+url_p_automate="url:http:/linkxxxxxxx"
+
+#########################
+bigquery_sandbox_qa="dataset_name"
+allowed_bq_tables="project_prod"
+table_sandbox_qa="team_validation_data"
+table_sandbox_result="response_validation_data"
+
+##########################
+path_output="project_prod"
+directory_querys="project_prod"
+
+archivo_log="project_prod"
+
+##########################
+environment="project_prod"
+
+##########################
+CORREO_QA="correo_prueba@correo.cl"
+
+##########################
+timesleep=10
+chunk_size=10
+```
 ### `config/log_config.py`
 
 Clase `registroLOG` que configura el sistema de logging:
@@ -492,15 +520,6 @@ source .venv/Scripts/activate
 # Ejecutar main
 python main.py
 ```
-
-### Script de Prueba
-
-```bash
-python test.py
-```
-
-Descarga destinatarios para todos los keys configurados.
-
 ---
 
 ## 📝 Archivos de Configuración
@@ -555,6 +574,77 @@ ver librerias en archivo "requirements.txt"
 
   3. **Archivo de configuración de merges**
      Ubicado en: `app/bigQuery/merge_config/merge_config.py`. contiene la estrucuta valida con la que se realizara cualquier insert/update u otro cambio en las tablas
+
+      ```python
+        MERGE_CONFIG = {
+        ## este nombre de la tabla debe coincidir con "allowed_bq_tables" (Punto 2) 
+        "teams_validation_data": {
+            "pk": ["request_id"],
+          #### solo esto inserta
+            "columns": {
+                "request_id": "s.request_id",
+                "destinatario": "s.destinatario",
+                "lista_colaboradores": "s.lista_colaboradores",
+                "status_code": "s.status_code",
+                "success": "s.success",
+                "timestamp": "TIMESTAMP(s.timestamp)"
+            },
+          #### solo en estos campos se ejecuta un update
+            "update":{
+                "status_code": "s.status_code",
+                "success": "s.success",
+                "timestamp": "TIMESTAMP(s.timestamp)",
+                "lista_colaboradores": "s.lista_colaboradores",
+                },
+            "where_update":{
+                "success": "false",
+                },
+            "order_by":{
+                "timestamp": "TIMESTAMP(s.timestamp)"
+                }
+        },
+
+        "response_validation_data": {
+            "pk": ["request_id","responseTime"],
+            "columns": {
+                "request_id": "s.request_id",
+                "messageId": "s.messageId",
+                "messageLink": "s.messageLink",
+                "responseTime": "s.responseTime",
+                "submitActionId": "s.submitActionId",
+                "responder_objectId": "s.responder_objectId",
+                "responder_tenantId": "s.responder_tenantId",
+                "responder_email": "s.responder_email",
+                "responder_userPrincipalName": "s.responder_userPrincipalName",
+                "responder_displayName": "s.responder_displayName",
+                "equipo_validado": "SPLIT(s.equipo_validado, ',')",
+                "falta_gente": "s.falta_gente",
+                "edp_load_datetime": "TIMESTAMP(s.edp_load_datetime)"
+            },
+
+            "update": {
+                "request_id": "s.request_id",
+                "messageId": "s.messageId",
+                "messageLink": "s.messageLink",
+                "responseTime": "s.responseTime",
+                "submitActionId": "s.submitActionId",
+                "responder_objectId": "s.responder_objectId",
+                "responder_tenantId": "s.responder_tenantId",
+                "responder_email": "s.responder_email",
+                "responder_userPrincipalName": "s.responder_userPrincipalName",
+                "responder_displayName": "s.responder_displayName",
+                "equipo_validado": "SPLIT(s.equipo_validado, ',')",
+                "falta_gente": "s.falta_gente",
+                "edp_load_datetime": "TIMESTAMP(s.edp_load_datetime)"
+        },
+            "where_update":{
+                "":""
+                }
+        ,
+            "order_by":{
+                "responseTime": "s.responseTime"
+                }}}
+      ```
 ---
 
 ## 📚 Dependencias Principales

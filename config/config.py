@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     correo_qa: Optional[str] = Field(default=None)
     ###################################################
     timesleep:int  = 30
-    chunk_size:int  = 5    
+    chunk_size:int  = 5
     ###################################################
     model_config = SettingsConfigDict(
         env_file=".env",
