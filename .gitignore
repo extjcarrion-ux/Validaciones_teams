@@ -11,3 +11,9 @@ __pycache__/*
 __pycache__/
 *.py[cod]
 *$py.class
+test.py
+
+# Ignorar archivos dentro de destinatarios
+data/destinatarios/*
+# PERMITIR el archivo .gitkeep
+!data/destinatarios/.gitkeep
