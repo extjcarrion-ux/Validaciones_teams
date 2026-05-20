@@ -17,8 +17,33 @@ Este proyecto es una aplicación Python diseñada para validar datos de equipos 
 - **BigQuery**: Para almacenamiento y procesamiento de datos
 - **Power Automate**: Para envío de formularios adaptables
 - **SharePoint**: Para gestión de archivos (comentado en la implementación actual)
+- **Version Python**: Para el proyecto se uso Python 3.14
 
 El sistema descarga destinatarios, procesa datos, envía validaciones y persiste respuestas.
+
+## Recomendaciones de Instalación
+- Instalar Python 3.14 o superior (En teoria funciona con version 3.12 o Superior)
+- Instalar y Configurar [Google SDK](https://docs.cloud.google.com/sdk/docs/install-sdk?hl=es-419)
+
+- Definir variables de Entorno en archivo ".env". (Sección Configuración)
+- Crear la tablas en Bigquery segun la estructura SQL del archivo "create_table.sql". usa el dataset y project-ID definido en archivo ".env"
+- Crear ambiente virtual en terminal CMD
+    ```bash
+    python -m venv .venv
+    ```
+- Instalar las librerias del archivo 'requirements.txt'
+    ```bash
+    pip install -r requirements.txt
+    ```
+- Ejecuta este comando para validar que las librerias se instalaron correctamente
+    ```bash
+    pip list
+    ```
+    ![Menu](librerias.png)
+
+- Ejecuta el archivo main.py para validar que todo este OK. Deberias visualizar un Menú de Opciones.
+
+  ![Menu](Menu.png)
 
 ---
 
@@ -659,5 +684,5 @@ ver librerias en archivo "requirements.txt"
 
 ---
 
-**Última actualización**: May 6, 2026
+**Última actualización**: May 20, 2026
 
