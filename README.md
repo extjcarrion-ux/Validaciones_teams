@@ -598,7 +598,7 @@ ver librerias en archivo "requirements.txt"
      ```
 
   3. **Archivo de configuración de merges**
-     Ubicado en: `app/bigQuery/merge_config/merge_config.py`. contiene la estrucuta valida con la que se realizara cualquier insert/update u otro cambio en las tablas
+     Ubicado en: `app/bigQuery/merge_config/merge_config.py`. contiene la estructura válida con la que se realizara cualquier insert/update u otro cambio en las tablas BQ
 
       ```python
         MERGE_CONFIG = {
