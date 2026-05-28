@@ -30,7 +30,7 @@ def get_array(data,value:str = "choices"):
     except Exception as e:
         logger.error(f"Exception : {e}")
         lista_resul.append(str(e))
-    
+
     return lista_resul
 
 # -------------------------------------------------- #

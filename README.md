@@ -52,7 +52,6 @@ El sistema descarga destinatarios, procesa datos, envía validaciones y persiste
 ```
 Validaciones_teams/
 ├── main.py                          # Punto de entrada - menú interactivo
-├── test.py                          # Script de pruebas
 ├── create_table.sql                 # Scripts SQL para crear tablas
 ├── requirements.txt                 # Dependencias del proyecto
 ├── read.md                          # Readme del proyecto
@@ -141,7 +140,7 @@ Clase `Settings` (Pydantic BaseSettings) que gestiona la configuración del proy
 | `environment` | str | Ambiente (QA/PROD) |
 | `correo_qa` | str | si environment = QA, se sobreescribe el correo destinatario |
 | `timesleep` | int | Tiempo espera entre operaciones (segundos) |
-| `chunk_size` | str | Numero de los registros que se van a procesar por cada iteracion |
+| `chunk_size` | int | Numero de los registros que se van a procesar por cada iteracion |
 
 **Lectura desde `.env`**: La clase lee automáticamente variables desde archivo `.env` en la raiz del proyecto
 
