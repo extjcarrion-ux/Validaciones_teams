@@ -33,7 +33,7 @@ def step_leer_query(key: str | None = None) -> Tuple[bool, Dict[str, Any]]:
     return True, json_key if isinstance(json_key, dict) else {}
 
 # -------------------------------------------------- #
-def step_cargar_bigquery(df: pd.DataFrame, tabla: str, dropTable: bool):    
+def step_cargar_bigquery(df: pd.DataFrame, tabla: str, dropTable: bool):
     allowed = settings.allowed_bq_tables
     if tabla not in allowed.values():
         raise ValueError(
@@ -259,12 +259,27 @@ def step_cargar_dataframe(file_name:str=str(''),reprocesar:bool=True) -> tuple[b
 # -------------------------------------------------- #
 def run_full_flow():
     logger.info("Inicio ejecución flujo completo")
-    file_dest = "destinatarios"
-    success, archivo = step_descargar_destinatarios(file_dest)
-    success = step_registrar_pendientes_bq(archivo)
+    json_query = read_json_file(settings.directory_querys)
 
-    if success:
-        step_enviar_y_persistir_por_lotes(file_dest)
+    for item in json_query:
+        logger.info("Procesando key=%s", item)
+        success, archivo = step_descargar_destinatarios(
+                                        query_key=item,
+                                        reprocesar=True)
+        if success:
+            success,json_query = step_leer_query()
+
+            if success and json_query:
+                for key,value in json_query.items():
+                    logger.info("Descargar + Enviar + Persistir para key=%s", key)
+                    success, archivo = step_descargar_destinatarios(
+                                        query_key=key,
+                                        reprocesar=True)
+
+                    if success:
+                        success = step_registrar_pendientes_bq(archivo)
+                        if success:
+                            step_enviar_y_persistir_por_lotes(key)
 
     logger.info("Flujo completo finalizado correctamente")
 
