@@ -266,20 +266,20 @@ def run_full_flow():
         success, archivo = step_descargar_destinatarios(
                                         query_key=item,
                                         reprocesar=True)
-        if success:
-            success,json_query = step_leer_query()
 
-            if success and json_query:
-                for key,value in json_query.items():
-                    logger.info("Descargar + Enviar + Persistir para key=%s", key)
-                    success, archivo = step_descargar_destinatarios(
-                                        query_key=key,
-                                        reprocesar=True)
+    success,json_query = step_leer_query()
 
-                    if success:
-                        success = step_registrar_pendientes_bq(archivo)
-                        if success:
-                            step_enviar_y_persistir_por_lotes(key)
+    if success and json_query:
+        for key,value in json_query.items():
+            logger.info("Descargar + Enviar + Persistir para key=%s", key)
+            success, archivo = step_descargar_destinatarios(
+                                query_key=key,
+                                reprocesar=True)
+
+            if success:
+                success = step_registrar_pendientes_bq(archivo)
+                if success:
+                    step_enviar_y_persistir_por_lotes(key)
 
     logger.info("Flujo completo finalizado correctamente")
 
