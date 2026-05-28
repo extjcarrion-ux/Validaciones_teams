@@ -147,19 +147,19 @@ Clase `Settings` (Pydantic BaseSettings) que gestiona la configuración del proy
 
 ### 'template .env'
 ```.env
-project_prod="name_project_prod"
-project_qa="name_project_qa"
+project_prod="tc-sc-bi-bigdata-edp-prod"
+project_qa="tc-sc-bi-bigdata-edp-qa"
 url_p_automate="url:http:/linkxxxxxxx"
 
 #########################
-bigquery_sandbox_qa="dataset_name"
-allowed_bq_tables="project_prod"
+bigquery_sandbox_qa="sbox_jcarrion"
 table_sandbox_qa="team_validation_data"
 table_sandbox_result="response_validation_data"
 
 ##########################
-path_output="project_prod"
-directory_querys="project_prod"
+path_result="data/resultado/"
+path_output="data/destinatarios/"
+directory_querys="config/querys.json"
 
 archivo_log="project_prod"
 
