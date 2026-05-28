@@ -162,10 +162,10 @@ directory_querys="config/querys.json"
 
 archivo_log="project_prod"
 
-##########################
-environment="project_prod"
+########################## 
+environment="QA"/"PROD"
 
-##########################
+#################### si environment = QA, se sobreescribe el correo de los destinatarios "CORREO_QA"
 CORREO_QA="correo_prueba@correo.cl"
 
 ##########################
